@@ -3,11 +3,43 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+const swaggerOptions = {
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "API Restaurante",
+            version: "1.0.0",
+            description: "Documentación completa del Sistema Gestor Restaurantes"
+        },
+        servers: [
+            {
+                url: "http://localhost:3000"
+            }
+        ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT"
+                }
+            }
+        }
+    },
+    apis: ["./server.js"]
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 mongoose.connect(process.env.MONGO_URI)
