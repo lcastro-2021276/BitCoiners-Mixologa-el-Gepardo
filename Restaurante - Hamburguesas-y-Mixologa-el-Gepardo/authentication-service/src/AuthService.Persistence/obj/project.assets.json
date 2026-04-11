@@ -6481,11 +6481,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Persistence\\AuthService.Persistence.csproj",
+      "projectUniqueName": "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Persistence\\AuthService.Persistence.csproj",
       "projectName": "AuthService.Persistence",
-      "projectPath": "c:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Persistence\\AuthService.Persistence.csproj",
+      "projectPath": "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Persistence\\AuthService.Persistence.csproj",
       "packagesPath": "C:\\Users\\GMG\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Persistence\\obj\\",
+      "outputPath": "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Persistence\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\GMG\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -6500,11 +6500,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "c:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Application\\AuthService.Application.csproj": {
-              "projectPath": "c:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Application\\AuthService.Application.csproj"
+            "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Application\\AuthService.Application.csproj": {
+              "projectPath": "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Application\\AuthService.Application.csproj"
             },
-            "c:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Domain\\AuthService.Domain.csproj": {
-              "projectPath": "c:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Domain\\AuthService.Domain.csproj"
+            "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Domain\\AuthService.Domain.csproj": {
+              "projectPath": "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Domain\\AuthService.Domain.csproj"
             }
           }
         }
