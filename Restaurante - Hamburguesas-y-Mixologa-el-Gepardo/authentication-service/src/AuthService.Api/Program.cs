@@ -4,21 +4,22 @@ using AuthService.Domain.Interfaces;
 using AuthService.Persistence.Data;
 using AuthService.Persistence.Repositories;
 using AuthService.Api.Middlewares;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using System.Text;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ====================
-// Controllers & Swagger
-// ====================
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -26,16 +27,18 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Restaurant Authentication API",
         Version = "v1",
-        Description = "Servicio de autenticación para el Sistema de Gestión de Restaurantes"
+        Description = "Servicio de autenticación para el Sistema de Restaurantes"
     });
 
+   
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
-        BearerFormat = "JWT"
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Escribe: Bearer {tu_token}"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -54,9 +57,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ====================
-// Database (PostgreSQL)
-// ====================
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(
@@ -65,38 +66,37 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     );
 });
 
-// ====================
-// JWT Configuration
-// ====================
+
 var jwtConfig = builder.Configuration.GetSection("Jwt");
 
 var key = jwtConfig["Key"]!;
 var issuer = jwtConfig["Issuer"]!;
 var audience = jwtConfig["Audience"]!;
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(key)),
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
 
-// ====================
-// Rate Limiting
-// ====================
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(key)
+        ),
+
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("ApiPolicy", context =>
@@ -110,32 +110,40 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-// ====================
-// Dependency Injection
-// ====================
-builder.Services.AddScoped<IUserRepository, UserRepository>(); // 🔥 EF CORE
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<IJwtService>(sp =>
 {
     var expires = int.TryParse(jwtConfig["ExpiresMinutes"], out var m) ? m : 60;
+
     return new JwtService(key, issuer, audience, expires);
 });
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService.Application.Services.AuthService>();
 
-// ====================
-// App Pipeline
-// ====================
+
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+
+
+// Swagger solo en desarrollo
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
+app.UseRouting();
+
 app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.Run();
