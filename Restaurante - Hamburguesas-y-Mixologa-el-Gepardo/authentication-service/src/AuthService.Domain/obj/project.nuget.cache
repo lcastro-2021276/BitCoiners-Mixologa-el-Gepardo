@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "2JTieTzWKpE=",
+  "dgSpecHash": "deOEpUMV5zk=",
   "success": true,
-  "projectFilePath": "C:\\Guepardo-Restaurant\\Los_Rezagados_Sistema_Restaurantes\\Restaurantes\\authentication-service\\auth-service\\src\\AuthService.Domain\\AuthService.Domain.csproj",
+  "projectFilePath": "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Domain\\AuthService.Domain.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\luisf\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
+    "C:\\Users\\GMG\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
   ],
   "logs": []
 }
