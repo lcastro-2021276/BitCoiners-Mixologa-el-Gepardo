@@ -1,46 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     User:
- *       type: object
- *       required:
- *         - name
- *         - email
- *         - password
- *         - role
- *       properties:
- *         name:
- *           type: string
- *           minLength: 3
- *           description: Nombre completo del usuario
- *           example: "Pablo Angel"
- *         email:
- *           type: string
- *           format: email
- *           description: Correo electrónico único del usuario
- *           example: "agarcia-2024043@gmail.com"
- *         password:
- *           type: string
- *           minLength: 6
- *           description: Contraseña del usuario (se almacena hasheada con bcrypt)
- *           example: "puvlolover123"
- *         role:
- *           type: string
- *           description: ID del rol asignado al usuario
- *           $ref: '#/components/schemas/Role'
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: Fecha de creación del usuario
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           description: Fecha de última actualización del usuario
- */
 const userSchema = new mongoose.Schema({
     name: { 
         type: String, 
