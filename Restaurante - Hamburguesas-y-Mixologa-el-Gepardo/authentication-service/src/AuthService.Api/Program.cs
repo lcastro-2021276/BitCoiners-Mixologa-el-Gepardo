@@ -11,15 +11,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using System.Reflection;
 using System.Text;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -27,10 +26,15 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Restaurant Authentication API",
         Version = "v1",
-        Description = "Servicio de autenticación para el Sistema de Restaurantes"
+        Description = "Servicio de autenticación para el Sistema de Restaurantes el Gepardo"
     });
 
-   
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+    if (File.Exists(xmlPath))
+        options.IncludeXmlComments(xmlPath);
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -57,7 +61,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(
@@ -65,7 +68,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         npgsql => npgsql.MigrationsAssembly("AuthService.Persistence")
     );
 });
-
 
 var jwtConfig = builder.Configuration.GetSection("Jwt");
 
@@ -85,17 +87,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-
         ValidIssuer = issuer,
         ValidAudience = audience,
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(key)
         ),
-
         ClockSkew = TimeSpan.Zero
     };
 });
-
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -110,25 +109,19 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IJwtService>(sp =>
 {
     var expires = int.TryParse(jwtConfig["ExpiresMinutes"], out var m) ? m : 60;
-
     return new JwtService(key, issuer, audience, expires);
 });
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService.Application.Services.AuthService>();
 
-
 var app = builder.Build();
 
-
-
-// Swagger solo en desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
