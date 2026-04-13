@@ -11,19 +11,6 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-/**
- * @swagger
- * tags:
- *   - name: Users
- *   - name: Auth
- *   - name: Roles
- *   - name: Restaurants
- *   - name: Reservations
- *   - name: Menu
- *   - name: Tables
- *   - name: Orders
- */
-
 const swaggerOptions = {
     definition: {
         openapi: "3.0.0",
@@ -48,15 +35,15 @@ const swaggerOptions = {
         }
     },
     apis: [
-    "./server.js",
-    "./src/routes/auth.routes.js",
-    "./src/routes/menuItem.routes.js",
-    "./src/routes/order.routes.js",
-    "./src/routes/restaurant.routes.js",
-    "./src/routes/role.routes.js",
-    "./src/routes/table.routes.js",
-    "./src/routes/user.routes.js"
-]
+        "./server.js",
+        "./src/routes/auth.routes.js",
+        "./src/routes/menuItem.routes.js",
+        "./src/routes/order.routes.js",
+        "./src/routes/restaurant.routes.js",
+        "./src/routes/role.routes.js",
+        "./src/routes/table.routes.js",
+        "./src/routes/user.routes.js"
+    ]
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
@@ -128,79 +115,197 @@ const auth = (req, res, next) => {
     }
 };
 
-/**
- * @swagger
- * /users:
- *   post:
- *     summary: Crear usuario
- *     tags: [Users]
- */
+// USERS 
 app.post("/users", async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
-
         const existingUser = await User.findOne({ email });
-
         if (existingUser) {
-            return res.status(400).json({
-                message: "El usuario ya existe con ese email"
-            });
+            return res.status(400).json({ message: "El usuario ya existe con ese email" });
         }
-
         const hashed = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-            name,
-            email,
-            password: hashed,
-            role
-        });
-
+        const user = await User.create({ name, email, password: hashed, role });
         res.status(201).json(user);
-
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-/**
- * @swagger
- * /login:
- *   post:
- *     summary: Login usuario
- *     tags: [Auth]
- */
+app.get("/users", async (req, res) => {
+    try {
+        res.json(await User.find().populate("role"));
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// AUTH 
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-
         if (!email || !password) {
             return res.status(400).json({ message: "Email y contraseña son obligatorios" });
         }
-
         const user = await User.findOne({ email });
-
         if (!user) {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
-
         const validPassword = await bcrypt.compare(password, user.password);
-
         if (!validPassword) {
             return res.status(401).json({ message: "Contraseña incorrecta" });
         }
-
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET || "secreto",
             { expiresIn: "2h" }
         );
+        res.json({ message: "Login exitoso", token });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
-        res.json({
-            message: "Login exitoso",
-            token
-        });
+// ROLES 
+app.post("/roles", async (req, res) => {
+    try {
+        const role = await Role.create(req.body);
+        res.json(role);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
 
+app.get("/roles", async (req, res) => {
+    try {
+        res.json(await Role.find());
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// RESTAURANTS 
+app.post("/restaurants", async (req, res) => {
+    try {
+        const restaurant = await Restaurant.create(req.body);
+        res.json(restaurant);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+app.get("/restaurants", async (req, res) => {
+    try {
+        res.json(await Restaurant.find());
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// RESERVATIONS 
+app.post("/reservations", async (req, res) => {
+    try {
+        const { reservationDate, restaurant } = req.body;
+        const existing = await Reservation.findOne({ reservationDate, restaurant });
+        if (existing) {
+            return res.status(400).json({ message: "Ya existe reserva" });
+        }
+        const reservation = await Reservation.create(req.body);
+        res.json(reservation);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+app.get("/reservations", async (req, res) => {
+    try {
+        res.json(await Reservation.find().populate("restaurant"));
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// MENU ITEMS 
+app.post("/menu-items", async (req, res) => {
+    try {
+        const item = await MenuItem.create(req.body);
+        res.json(item);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+app.get("/menu-items", async (req, res) => {
+    try {
+        res.json(await MenuItem.find().populate("restaurant"));
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// TABLES 
+app.post("/tables", async (req, res) => {
+    try {
+        const table = await Table.create(req.body);
+        res.json(table);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+app.get("/tables", async (req, res) => {
+    try {
+        res.json(await Table.find());
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// ORDERS 
+app.post("/orders", async (req, res) => {
+    try {
+        const { table, items } = req.body;
+        let total = 0;
+        const detailed = await Promise.all(items.map(async (i) => {
+            const menu = await MenuItem.findById(i.menuItem);
+            const subtotal = menu.price * i.quantity;
+            total += subtotal;
+            return { menuItem: menu._id, quantity: i.quantity, price: menu.price };
+        }));
+        const order = await Order.create({ table, items: detailed, total });
+        res.json(order);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+app.get("/orders", async (req, res) => {
+    try {
+        res.json(await Order.find().populate("table items.menuItem"));
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+app.put("/orders/:id/status", async (req, res) => {
+    try {
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status: req.body.status },
+            { new: true }
+        );
+        if (!order) return res.status(404).json({ message: "Pedido no encontrado" });
+        res.json(order);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// REPORT 
+app.get("/report", async (req, res) => {
+    try {
+        const orders = await Order.find();
+        const totalSales = orders.reduce((acc, o) => acc + o.total, 0);
+        res.json({ totalOrders: orders.length, totalSales });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
