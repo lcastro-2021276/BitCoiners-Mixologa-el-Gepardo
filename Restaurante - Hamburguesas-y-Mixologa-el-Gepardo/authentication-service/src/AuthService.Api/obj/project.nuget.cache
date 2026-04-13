@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hIM/B1yD1dw=",
+  "dgSpecHash": "rDN26OwZejs=",
   "success": true,
-  "projectFilePath": "C:\\Users\\GMG\\Documents\\Documentacion - Restaurantes\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Api\\AuthService.Api.csproj",
+  "projectFilePath": "C:\\Users\\GMG\\Documents\\RepoRestaturant\\BitCoiners-Mixologa-el-Gepardo\\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\\authentication-service\\src\\AuthService.Api\\AuthService.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\GMG\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\GMG\\.nuget\\packages\\bouncycastle.cryptography\\2.5.1\\bouncycastle.cryptography.2.5.1.nupkg.sha512",
