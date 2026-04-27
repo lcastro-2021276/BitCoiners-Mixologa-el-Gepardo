@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: Restaurantes123!
       POSTGRES_DB: restaurantes_db
     ports:
-      - "5435:5432"
+      - "5441:5432"
     volumes:
       - restaurants_postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
