@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary:      #5b4e6a;
+  --color-secondary:    #8c8cae;
+  --color-accent:       #b76d1b;
+  --color-accent-soft:  #c38e6e;
+
+  --color-bg-dark:      #040404;
+  --color-bg-primary:   #2f2419;
+  --color-bg-secondary: #4c4b33;
+
+  --color-text-main:    #ecd6e1;
+  --color-text-second:  #a49464;
+  --color-text-muted:   #8c8cae;
+
+  --color-success:      #4ade80;
+  --color-warning:      #fbbf24;
+  --color-error:        #ef4444;
+  --color-info:         #38bdf8;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  --bg-dark:      #040404;
+  --bg-primary:   #2f2419;
+  --bg-secondary: #4c4b33;
+
+  --text-primary:   #ecd6e1;
+  --text-secondary: #a49464;
+  --text-muted:     #8c8cae;
+
+  --color-accent:      #b76d1b;
+  --color-accent-soft: #c38e6e;
+  --color-error:       #ef4444;
+  --color-success:     #4ade80;
+  --color-warning:     #fbbf24;
+  --color-info:        #38bdf8;
+
+  --border-color:  rgba(236, 214, 225, 0.15);
+  --shadow-sm:     0 2px 6px rgba(0, 0, 0, 0.2);
+  --shadow-md:     0 6px 18px rgba(0, 0, 0, 0.25);
+  --shadow-lg:     0 10px 30px rgba(0, 0, 0, 0.35);
+
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow:   0.4s ease;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  font-size: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out;
+}
+
+.sidebar-underline { position: relative; }
+.sidebar-underline.active::after {
+  content: '';
+  position: absolute;
+  left: 16px; right: 16px; bottom: 6px;
+  height: 5px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(183,109,27,0.18) 0%,
+    var(--color-accent) 50%,
+    rgba(183,109,27,0.18) 100%
+  );
+  filter: blur(1.5px);
+  z-index: 1;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+}
+
+.card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-normal);
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
