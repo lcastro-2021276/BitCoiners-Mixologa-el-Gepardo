@@ -13,44 +13,44 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    modelBuilder.Entity<User>(entity =>
     {
-        base.OnModelCreating(modelBuilder);
+        entity.ToTable("Users"); 
+        entity.HasKey(u => u.Id);
 
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasKey(u => u.Id);
+        entity.Property(u => u.Id)
+            .IsRequired();
 
-            entity.Property(u => u.Id)
-                .IsRequired();
+        entity.Property(u => u.Username)
+            .IsRequired()
+            .HasMaxLength(100);
 
-            entity.Property(u => u.Username)
-                .IsRequired()
-                .HasMaxLength(100);
+        entity.HasIndex(u => u.Username).IsUnique();
 
-            entity.HasIndex(u => u.Username).IsUnique();
+        entity.Property(u => u.Email)
+            .IsRequired()
+            .HasMaxLength(150);
 
-            entity.Property(u => u.Email)
-                .IsRequired()
-                .HasMaxLength(150);
+        entity.HasIndex(u => u.Email).IsUnique();
 
-            entity.HasIndex(u => u.Email).IsUnique();
+        entity.Property(u => u.PasswordHash)
+            .IsRequired();
 
-            entity.Property(u => u.PasswordHash)
-                .IsRequired();
+        entity.Property(u => u.Role)
+            .IsRequired()
+            .HasMaxLength(50);
 
-            entity.Property(u => u.Role)
-                .IsRequired()
-                .HasMaxLength(50);
+        entity.Property(u => u.EmailConfirmed)
+            .IsRequired();
 
-            entity.Property(u => u.EmailConfirmed)
-                .IsRequired();
+        entity.Property(u => u.EmailVerificationToken)
+            .HasMaxLength(200);
 
-            // 🔹 Tokens (opcional pero correcto)
-            entity.Property(u => u.EmailVerificationToken)
-                .HasMaxLength(200);
-
-            entity.Property(u => u.PasswordResetToken)
-                .HasMaxLength(200);
-        });
-    }
+        entity.Property(u => u.PasswordResetToken)
+            .HasMaxLength(200);
+    });
+}
 }

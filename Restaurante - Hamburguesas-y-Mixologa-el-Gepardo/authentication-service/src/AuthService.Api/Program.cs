@@ -17,8 +17,10 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -31,7 +33,6 @@ builder.Services.AddSwaggerGen(options =>
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-
     if (File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath);
 
@@ -61,6 +62,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// 3️⃣ Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(
@@ -69,8 +71,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     );
 });
 
-var jwtConfig = builder.Configuration.GetSection("Jwt");
 
+var jwtConfig = builder.Configuration.GetSection("Jwt");
 var key = jwtConfig["Key"]!;
 var issuer = jwtConfig["Issuer"]!;
 var audience = jwtConfig["Audience"]!;
@@ -80,7 +82,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
-
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -89,12 +90,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateIssuerSigningKey = true,
         ValidIssuer = issuer,
         ValidAudience = audience,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(key)
-        ),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
         ClockSkew = TimeSpan.Zero
     };
 });
+
 
 builder.Services.AddRateLimiter(options =>
 {
@@ -109,18 +109,29 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Frontend
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IJwtService>(sp =>
 {
     var expires = int.TryParse(jwtConfig["ExpiresMinutes"], out var m) ? m : 60;
     return new JwtService(key, issuer, audience, expires);
 });
-
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService.Application.Services.AuthService>();
 
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -128,12 +139,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
+
+app.UseCors("AllowFrontend");
+
 app.UseRouting();
-
 app.UseRateLimiter();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
