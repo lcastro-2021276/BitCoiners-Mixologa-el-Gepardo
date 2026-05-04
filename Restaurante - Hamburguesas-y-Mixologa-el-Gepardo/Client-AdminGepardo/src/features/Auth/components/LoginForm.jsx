@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useLogin } from "../hooks/useLogin";
+import { useLogin } from "../hook/useLogin";
 
 export const LoginForm = ({ onForgot }) => {
   const { handleLogin, loading, error } = useLogin();
