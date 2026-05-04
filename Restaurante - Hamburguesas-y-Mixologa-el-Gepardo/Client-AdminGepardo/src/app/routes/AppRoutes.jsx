@@ -7,48 +7,28 @@ import { DashboardPage }     from "../layouts/DashboardPage";
 import { DashboardHome }     from "../../features/dashboard/pages/DashboardHome";
 import { ProtectedRoute }    from "./ProtectedRoute";
 import { RoleGuard }         from "./RoleGuard";
+import { MenuPage }          from "../../features/auth/pages/MenuPage";        // ← agregar
+import { RestaurantsPage }   from "../../features/auth/pages/RestaurantsPage"; // ← agregar
+import { TablesPage }        from "../../features/auth/pages/TablesPage";      // ← agregar
 
 export const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/login"         element={<AuthPage />} />
+      <Route path="/verify-email"  element={<VerifyEmailPage />} />
+      <Route path="/unauthorized"  element={<UnauthorizedPage />} />
 
-      {/* ── PÚBLICAS ── */}
-      <Route path="/login"          element={<AuthPage />} />
-      <Route path="/verify-email"   element={<VerifyEmailPage />} />
-      <Route path="/unauthorized"   element={<UnauthorizedPage />} />
-
-      {/* ── PROTEGIDAS (requieren sesión) ── */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardPage />}>
-
-          {/* Accesible por cualquier rol autenticado */}
-          <Route path="/dashboard" element={<DashboardHome />} />
-
-          {/* Solo Admin y Manager */}
-          <Route element={<RoleGuard allowedRoles={["Admin", "Manager"]} />}>
-            {/* <Route path="/dashboard/users"  element={<UsersPage />} /> */}
-            {/* <Route path="/dashboard/reports" element={<ReportsPage />} /> */}
-          </Route>
-
-          {/* Solo Admin */}
-          <Route element={<RoleGuard allowedRoles={["Admin"]} />}>
-            {/* <Route path="/dashboard/settings" element={<SettingsPage />} /> */}
-          </Route>
-
-          {/* Todas las rutas del dashboard (cualquier rol) */}
-          {/* <Route path="/dashboard/menu"          element={<MenuPage />} /> */}
-          {/* <Route path="/dashboard/orders"        element={<OrdersPage />} /> */}
-          {/* <Route path="/dashboard/reservations"  element={<ReservationsPage />} /> */}
-          {/* <Route path="/dashboard/tables"        element={<TablesPage />} /> */}
-          {/* <Route path="/dashboard/reviews"       element={<ReviewsPage />} /> */}
-
+          <Route path="/dashboard"             element={<DashboardHome />} />
+          <Route path="/dashboard/menu"        element={<MenuPage />} />        {/* ← agregar */}
+          <Route path="/dashboard/restaurants" element={<RestaurantsPage />} /> {/* ← agregar */}
+          <Route path="/dashboard/tables"      element={<TablesPage />} />      {/* ← agregar */}
         </Route>
       </Route>
 
-      {/* Catch-all */}
       <Route path="/"  element={<Navigate to="/login" replace />} />
       <Route path="*"  element={<Navigate to="/login" replace />} />
-
     </Routes>
   );
 };

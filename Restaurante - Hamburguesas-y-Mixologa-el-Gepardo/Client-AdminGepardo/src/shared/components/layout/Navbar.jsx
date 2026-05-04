@@ -7,6 +7,7 @@ export const Navbar = ({ title, subtitle, onMenuOpen }) => {
       className="flex items-center gap-3 px-5 sticky top-0 z-10"
       style={{
         height: "52px",
+        flexShrink: 0,
         background: "var(--bg-primary)",
         borderBottom: "1px solid var(--border-color)",
       }}

@@ -2,13 +2,17 @@ import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { AppRoutes } from "./app/routes/AppRoutes";
 import { useAuthStore } from "./features/auth/store/authStore";
+import "./App.css";
 
 function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  if (isCheckingAuth) return null;
 
   return (
     <>

@@ -1,3 +1,10 @@
+
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* ... resto del archivo */
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

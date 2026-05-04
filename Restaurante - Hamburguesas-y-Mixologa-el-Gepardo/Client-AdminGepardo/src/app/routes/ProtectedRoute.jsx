@@ -3,9 +3,12 @@ import { useAuthStore } from "../../features/auth/store/authStore";
 
 export const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const token           = useAuthStore((s) => s.token);
+  const token = useAuthStore((s) => s.token);
 
-  if (!isAuthenticated || !token) {
+  // Leer estado fresco directamente del store
+  const state = useAuthStore.getState();
+
+  if (!state.isAuthenticated || !state.token) {
     return <Navigate to="/login" replace />;
   }
 
