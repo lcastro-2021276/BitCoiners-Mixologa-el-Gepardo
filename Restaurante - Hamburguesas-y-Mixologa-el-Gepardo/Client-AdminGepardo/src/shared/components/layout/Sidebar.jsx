@@ -4,6 +4,8 @@ import {
   HomeIcon, ClipboardDocumentListIcon, UsersIcon,
   CalendarDaysIcon, StarIcon, TableCellsIcon,
   Bars3Icon, XMarkIcon, ArrowRightOnRectangleIcon,
+  BuildingStorefrontIcon,
+  QueueListIcon,
 } from "@heroicons/react/24/outline";
 
 const NAV_SECTIONS = [
@@ -12,16 +14,17 @@ const NAV_SECTIONS = [
     items: [
       { to: "/dashboard",              label: "Inicio",        icon: HomeIcon },
       { to: "/dashboard/orders",       label: "Pedidos",       icon: ClipboardDocumentListIcon, badge: "12" },
-      { to: "/dashboard/menu",         label: "Menú",          icon: Bars3Icon },
+      { to: "/dashboard/menu",         label: "Menú",          icon: QueueListIcon }, // ← cambiar aquí
       { to: "/dashboard/reservations", label: "Reservaciones", icon: CalendarDaysIcon, badgeInfo: "3" },
     ],
   },
   {
     label: "Operaciones",
     items: [
-      { to: "/dashboard/tables",  label: "Mesas",    icon: TableCellsIcon },
-      { to: "/dashboard/users",   label: "Usuarios", icon: UsersIcon },
-      { to: "/dashboard/reviews", label: "Reseñas",  icon: StarIcon },
+      { to: "/dashboard/restaurants", label: "Restaurantes", icon: BuildingStorefrontIcon },
+      { to: "/dashboard/tables",      label: "Mesas",        icon: TableCellsIcon },
+      { to: "/dashboard/users",       label: "Usuarios",     icon: UsersIcon },
+      { to: "/dashboard/reviews",     label: "Reseñas",      icon: StarIcon },
     ],
   },
 ];
