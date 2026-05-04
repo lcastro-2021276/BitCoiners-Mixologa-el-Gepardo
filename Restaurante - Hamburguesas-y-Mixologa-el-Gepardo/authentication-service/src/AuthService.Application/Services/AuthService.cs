@@ -20,9 +20,8 @@ public class AuthService : IAuthService
     // ========================= LOGIN =========================
     public async Task<AuthResponseDto> Login(LoginDto dto)
     {
-        // Buscar usuario por Username o Email
         var user = await _users.GetByUsername(dto.Username)
-            ?? await _users.GetByEmail(dto.Username);  // Si no lo encuentra por Username, lo busca por Email
+            ?? await _users.GetByEmail(dto.Username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return AuthResponseDto.Fail("Credenciales inválidas");
@@ -31,72 +30,65 @@ public class AuthService : IAuthService
             return AuthResponseDto.Fail("Email no verificado");
 
         var token = _jwt.GenerateToken(user);
-
-        return AuthResponseDto.SuccessResponse("Login exitoso", token);
+        return AuthResponseDto.SuccessResponse("Login exitoso", token, user.Username);
     }
 
     // ========================= REGISTER =========================
-public async Task<AuthResponseDto> Register(RegisterDto dto)
-{
-    if (string.IsNullOrWhiteSpace(dto.Username) ||
-        string.IsNullOrWhiteSpace(dto.Email) ||
-        string.IsNullOrWhiteSpace(dto.Password))
+    public async Task<AuthResponseDto> Register(RegisterDto dto)
     {
-        return AuthResponseDto.Fail("Username, Email y Password son requeridos");
+        if (string.IsNullOrWhiteSpace(dto.Username) || 
+            string.IsNullOrWhiteSpace(dto.Email) || 
+            string.IsNullOrWhiteSpace(dto.Password))
+        {
+            return AuthResponseDto.Fail("Username, Email y Password son requeridos");
+        }
+
+        if (await _users.GetByUsername(dto.Username) != null)
+            return AuthResponseDto.Fail("El usuario ya existe");
+
+        if (await _users.GetByEmail(dto.Email) != null)
+            return AuthResponseDto.Fail("El email ya está registrado");
+
+        var verificationToken = Guid.NewGuid().ToString();
+
+        var user = new User
+        {
+            Username = dto.Username,
+            Email = dto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = string.IsNullOrWhiteSpace(dto.Role) ? "USER" : dto.Role,
+            EmailConfirmed = false,
+            EmailVerificationToken = verificationToken
+        };
+
+        await _users.Add(user);
+
+        // Devolvemos el verificationToken (el GUID) para que el usuario pueda validar su cuenta
+        return AuthResponseDto.SuccessResponse(
+            "Registro exitoso. Usa este token para verificar tu email",
+            verificationToken, 
+            user.Username 
+        );
     }
 
-    if (await _users.GetByUsername(dto.Username) != null)
-        return AuthResponseDto.Fail("El usuario ya existe");
-
-    if (await _users.GetByEmail(dto.Email) != null)
-        return AuthResponseDto.Fail("El email ya está registrado");
-
-    var verificationToken = Guid.NewGuid().ToString();
-
-    var user = new User
+    // ========================= VERIFY EMAIL (RESTAURADO) =========================
+    public async Task<AuthResponseDto> VerifyEmail(string token)
     {
-        Username = dto.Username,
-        Email = dto.Email,
-        PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-        Role = string.IsNullOrWhiteSpace(dto.Role) ? "USER" : dto.Role,
-        EmailConfirmed = false,
-        EmailVerificationToken = verificationToken
-    };
+        var user = await _users.GetByVerificationToken(token);
 
-    await _users.Add(user);
+        if (user == null)
+            return AuthResponseDto.Fail("Token inválido");
 
-    // Generar el token JWT después de registrar al usuario
-    var jwtToken = _jwt.GenerateToken(user);
+        user.EmailConfirmed = true;
+        user.EmailVerificationToken = null;
 
-    // Devolver la respuesta con el token y el usuario
-    return AuthResponseDto.SuccessResponse(
-        "Registro exitoso. Usa este token para verificar tu email",
-        jwtToken,
-        user.Username // Aquí incluimos el usuario
-    );
-}
+        await _users.Update(user);
 
-    // ========================= VERIFY EMAIL =========================
-public async Task<AuthResponseDto> VerifyEmail(string token)
-{
-    var user = await _users.GetByVerificationToken(token);
+        // Ahora que ya está verificado, le damos su primer JWT real para que entre a la app
+        var jwtToken = _jwt.GenerateToken(user);
 
-    if (user == null)
-        return AuthResponseDto.Fail("Token inválido");
-
-    // Marcar el email como verificado
-    user.EmailConfirmed = true;
-    user.EmailVerificationToken = null;
-
-    // Actualizar el usuario en la base de datos
-    await _users.Update(user);
-
-    // Generar el token JWT después de verificar el email
-    var jwtToken = _jwt.GenerateToken(user);  // Aquí generamos el token para el usuario
-
-    // Devolver la respuesta con el token y el usuario
-    return AuthResponseDto.SuccessResponse("Email verificado correctamente", jwtToken, user.Username);  // También puedes devolver más información si lo deseas
-}
+        return AuthResponseDto.SuccessResponse("Email verificado correctamente", jwtToken, user.Username);
+    }
 
     // ========================= FORGOT PASSWORD =========================
     public async Task<AuthResponseDto> ForgotPassword(string email)

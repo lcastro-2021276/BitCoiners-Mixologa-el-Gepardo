@@ -132,6 +132,23 @@ builder.Services.AddScoped<IAuthService, AuthService.Application.Services.AuthSe
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        // Esto creará la base de datos y las tablas si no existen en Docker
+        context.Database.Migrate(); 
+        Console.WriteLine("✅ Base de datos sincronizada correctamente.");
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "❌ Error al migrar la base de datos.");
+    }
+}
+
 
 if (app.Environment.IsDevelopment())
 {
