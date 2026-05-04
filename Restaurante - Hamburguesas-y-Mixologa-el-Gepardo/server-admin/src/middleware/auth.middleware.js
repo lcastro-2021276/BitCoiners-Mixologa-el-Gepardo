@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
-const verifyToken = (req, res, next) => {
+export const verifyToken = (req, res, next) => {
     const authHeader = req.headers["authorization"];
 
     if (!authHeader) {
@@ -14,15 +14,19 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || "restaurante_secreto");
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+            issuer: "KinalSports",
+            audience: "KinalSports",
+        });
         req.user = decoded;
         next();
     } catch (error) {
-        return res.status(403).json({ message: "Token inválido" });
+        console.log("Error verificando token:", error.message); 
+        return res.status(403).json({ message: "Token inválido", error: error.message });
     }
 };
 
-const verifyRole = (role) => {
+export const verifyRole = (role) => {
     return (req, res, next) => {
         if (!req.user || req.user.role !== role) {
             return res.status(403).json({ message: "No autorizado" });
@@ -30,5 +34,3 @@ const verifyRole = (role) => {
         next();
     };
 };
-
-module.exports = { verifyToken, verifyRole };

@@ -4,20 +4,18 @@ import User from "../models/User.js";
 
 export const register = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { name, email, password, role } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "El usuario ya existe" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = new User({
-      username,
+      name,
       email,
-      password: hashedPassword,
-      role: role || "USER"
+      password,  // el modelo User tiene pre('save') que hashea automáticamente
+      role
     });
 
     await newUser.save();
