@@ -8,15 +8,17 @@ export const useLogin = () => {
   const loading  = useAuthStore((s) => s.loading);
   const error    = useAuthStore((s) => s.error);
 
-  const handleLogin = async (data) => {
-    const res = await login(data);
-    if (res.success) {
-      toast.success("¡Bienvenido al Restaurante el Gepardo! ", { duration: 3000 });
-      navigate("/dashboard");
-    } else {
-      toast.error(res.message || "Credenciales incorrectas");
-    }
-  };
+const handleLogin = async (data) => {
+  console.log("data recibida:", data);
+  const res = await login(data);
+  console.log("respuesta del login:", res);
+  if (res?.success) {
+    toast.success("¡Bienvenido al Restaurante el Gepardo!", { duration: 3000 });
+    navigate("/dashboard", { replace: true });
+  } else {
+    toast.error(res?.message || "Credenciales incorrectas");
+  }
+};
 
   return { handleLogin, loading, error };
 };
