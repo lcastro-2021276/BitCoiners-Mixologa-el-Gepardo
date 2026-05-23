@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { axiosAuth } from "../../../shared/apis/api.js";
+import toast from "react-hot-toast";
 
 export const useAuthStore = create((set) => ({
   user: null,
@@ -8,84 +9,140 @@ export const useAuthStore = create((set) => ({
   isAuthenticated: false,
   loading: false,
   error: null,
-  isCheckingAuth: false,
 
   login: async (data) => {
-    set({ loading: true, error: null });
+    set({
+      loading: true,
+      error: null,
+    });
+
     try {
-      const isEmail = data.emailOrUsername.includes("@");
-      const payload = {
-        password: data.password,
-        ...(isEmail
-          ? { email: data.emailOrUsername }
-          : { username: data.emailOrUsername }),
-      };
 
-      console.log("payload enviado:", payload);
-      console.log("URL base:", axiosAuth.defaults.baseURL);
+      const res = await axiosAuth.post(
+        "/auth/login",
+        data
+      );
 
-      const res = await axiosAuth.post("/auth/login", payload);
-      console.log("respuesta axios:", res);
+      console.log("LOGIN RESPONSE:", res.data);
+
       const responseData = res.data;
 
-      if (responseData.success) {
-        localStorage.setItem("user", JSON.stringify(responseData.user));
-        console.log("RESPUESTA COMPLETA DEL BACKEND:", res.data);
-        localStorage.setItem("refreshToken", responseData.refreshToken);
+      // =========================
+      // DETECTAR TOKEN
+      // =========================
+      const token =
+        responseData.token ||
+        responseData.accessToken;
+
+      const refreshToken =
+        responseData.refreshToken || null;
+
+      const user =
+        responseData.user ||
+        responseData.userDetails;
+
+      // =========================
+      // VALIDAR TOKEN
+      // =========================
+      if (!token) {
+
+        toast.error("No se recibió token");
+
         set({
-          user: responseData.user,
-          token: responseData.token,
-          refreshToken: responseData.refreshToken,
-          isAuthenticated: true,
           loading: false,
+          error: "Token inválido",
         });
-      } else {
-        set({ error: responseData.message || "Error al iniciar sesión", loading: false });
+
+        return { success: false };
       }
 
-      return {
-        success: responseData.success || false,
-        user: responseData.user || null,
-        token: responseData.token || null,
-        message: responseData.message || null,
-      };
-    } catch (err) {
-      console.log("error en login:", err);
+      // =========================
+      // LOCAL STORAGE
+      // =========================
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+      );
+
+      localStorage.setItem(
+        "token",
+        token
+      );
+
+      if (refreshToken) {
+        localStorage.setItem(
+          "refreshToken",
+          refreshToken
+        );
+      }
+
+      // =========================
+      // STORE
+      // =========================
       set({
-        error: err.response?.data?.message || "Error desconocido",
+        user,
+        token,
+        refreshToken,
+        isAuthenticated: true,
         loading: false,
+        error: null,
       });
-      return { success: false, message: err.response?.data?.message || "Error desconocido" };
+
+      toast.success("Login exitoso");
+
+      return {
+        success: true,
+        user,
+      };
+
+    } catch (err) {
+
+      console.log(err);
+
+      const message =
+        err.response?.data?.message ||
+        "Error al iniciar sesión";
+
+      set({
+        loading: false,
+        error: message,
+      });
+
+      toast.error(message);
+
+      return {
+        success: false,
+      };
     }
   },
 
- logout: () => {
-  localStorage.removeItem("user");       // ← agregar
-  localStorage.removeItem("token", responseData.token);      // ← agregar
-  localStorage.removeItem("refreshToken"); // ← agregar
-  set({
-    user: null,
-    token: null,
-    refreshToken: null,
-    isAuthenticated: false,
-  });
-},
-
   checkAuth: () => {
-    const savedUser = localStorage.getItem("user");
-    const savedToken = localStorage.getItem("token");
-    const savedRefresh = localStorage.getItem("refreshToken");
 
-    if (savedUser && savedToken) {
+    const user = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (user && token) {
+
       set({
-        user: JSON.parse(savedUser),
-        token: savedToken,
-        refreshToken: savedRefresh,
+        user: JSON.parse(user),
+        token,
+        refreshToken,
         isAuthenticated: true,
-        isCheckingAuth: false,
       });
-    } else {
-      set({ isCheckingAuth: false });
     }
+  },
+
+  logout: () => {
+
+    localStorage.clear();
+
+    set({
+      user: null,
+      token: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      error: null,
+    });
   },
 }));
