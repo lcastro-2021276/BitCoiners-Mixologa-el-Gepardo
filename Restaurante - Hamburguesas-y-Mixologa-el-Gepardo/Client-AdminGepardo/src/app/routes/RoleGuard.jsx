@@ -1,23 +1,19 @@
-// src/app/routes/RoleGuard.jsx
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "../../features/auth/store/authStore";
+import { Navigate } from "react-router-dom";
+import { useAuthStore } from "../../features/auth/store/authStore";  //  faltaba esto
 
-/**
- * Protege rutas por rol.
- * Uso: <Route element={<RoleGuard allowedRoles={["Admin", "Manager"]} />}>
- */
-export const RoleGuard = ({ allowedRoles = [] }) => {
+export const RoleGuard = ({ allowedRoles = [], children }) => {
   const user = useAuthStore((s) => s.user);
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  const hasRole = allowedRoles.includes(user.role);
+  const userRole = user.role?.toUpperCase();
+  const hasRole = allowedRoles.includes(userRole);
 
   if (!hasRole) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  return <Outlet />;
+  return children;
 };
