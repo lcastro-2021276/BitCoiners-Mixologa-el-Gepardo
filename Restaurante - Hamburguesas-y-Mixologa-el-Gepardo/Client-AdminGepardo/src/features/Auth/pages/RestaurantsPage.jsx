@@ -2,34 +2,49 @@ import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
 
 const EMPTY_FORM = {
-  name: "", address: "", phone: "", email: "", capacity: "", openingHours: ""
+  name: "",
+  address: "",
+  phone: "",
+  email: "",
+  capacity: "",
+  openingHours: "",
 };
 
 export const RestaurantsPage = () => {
   const [restaurants, setRestaurants] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [showModal, setShowModal]     = useState(false);
-  const [editing, setEditing]         = useState(null);   // null = crear, obj = editar
-  const [form, setForm]               = useState(EMPTY_FORM);
-  const [saving, setSaving]           = useState(false);
-  const [error, setError]             = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // ── Cargar ──────────────────────────────────────────────
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const gold = "#B8860B";
+  const goldLight = "#C9972A";
+  const serif = "'Cormorant Garamond', Georgia, serif";
+
+  /* =========================
+        FETCH
+  ========================= */
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
       const res = await axiosAdmin.get("/restaurants");
       setRestaurants(res.data);
-    } catch {
-      setError("Error al cargar restaurantes");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchRestaurants(); }, []);
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
 
-  // ── Abrir modal ──────────────────────────────────────────
+  /* =========================
+        MODAL
+  ========================= */
   const openCreate = () => {
     setEditing(null);
     setForm(EMPTY_FORM);
@@ -40,25 +55,47 @@ export const RestaurantsPage = () => {
   const openEdit = (r) => {
     setEditing(r);
     setForm({
-      name: r.name || "", address: r.address || "", phone: r.phone || "",
-      email: r.email || "", capacity: r.capacity || "", openingHours: r.openingHours || ""
+      name: r.name || "",
+      address: r.address || "",
+      phone: r.phone || "",
+      email: r.email || "",
+      capacity: r.capacity || "",
+      openingHours: r.openingHours || "",
     });
     setError("");
     setShowModal(true);
   };
 
-  // ── Guardar ──────────────────────────────────────────────
+  const closeModal = () => {
+    if (saving) return;
+    setShowModal(false);
+    setEditing(null);
+    setForm(EMPTY_FORM);
+    setError("");
+  };
+
+  /* =========================
+        SAVE
+  ========================= */
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
+
     try {
+      if (!form.name) {
+        setError("El nombre es obligatorio");
+        setSaving(false);
+        return;
+      }
+
       if (editing) {
         await axiosAdmin.put(`/restaurants/${editing._id}`, form);
       } else {
         await axiosAdmin.post("/restaurants", form);
       }
-      setShowModal(false);
+
+      closeModal();
       fetchRestaurants();
     } catch (err) {
       setError(err.response?.data?.message || "Error al guardar");
@@ -67,140 +104,339 @@ export const RestaurantsPage = () => {
     }
   };
 
-  // ── Eliminar ─────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (!confirm("¿Eliminar este restaurante?")) return;
-    try {
-      await axiosAdmin.delete(`/restaurants/${id}`);
-      fetchRestaurants();
-    } catch {
-      alert("Error al eliminar");
-    }
+
+    await axiosAdmin.delete(`/restaurants/${id}`);
+    fetchRestaurants();
   };
 
-  // ── UI ───────────────────────────────────────────────────
-  return (
-    <div className="space-y-6 animate-fadeIn">
+  const totalCapacity = restaurants.reduce(
+    (acc, r) => acc + Number(r.capacity || 0),
+    0
+  );
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Restaurantes
-          </h1>
-          <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-            {restaurants.length} registrado{restaurants.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <button onClick={openCreate} className="btn-accent px-4 py-2 rounded-lg text-sm font-semibold"
-          style={{ background: "var(--color-accent)", color: "#fff" }}>
+  /* =========================
+        UI
+  ========================= */
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "26px" }}>
+
+      {/* HEADER */}
+      <section
+        style={{
+          background: "#0e1e15",
+          borderRadius: "16px",
+          padding: "40px",
+          color: "#fff",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <h1 style={{ fontFamily: serif, fontSize: "42px", fontWeight: 300, margin: 0 }}>
+          Restaurantes
+          <span style={{ display: "block", color: goldLight }}>
+            Sucursales del sistema
+          </span>
+        </h1>
+
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginTop: "10px" }}>
+          Administra ubicaciones, horarios y capacidad operativa
+        </p>
+
+        <button
+          onClick={openCreate}
+          style={{
+            marginTop: "14px",
+            background: gold,
+            border: "none",
+            padding: "10px 16px",
+            borderRadius: "8px",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
           + Nuevo restaurante
         </button>
+      </section>
+
+      {/* STATS */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+
+        <div style={cardStyle}>
+          <p style={statLabel}>Restaurantes</p>
+          <h2 style={{ color: "#18392b", fontSize: "34px", margin: 0 }}>
+            {restaurants.length}
+          </h2>
+        </div>
+
+        <div style={cardStyle}>
+          <p style={statLabel}>Capacidad total</p>
+          <h2 style={{ color: gold, fontSize: "34px", margin: 0 }}>
+            {totalCapacity}
+          </h2>
+        </div>
+
+        <div style={cardStyle}>
+          <p style={statLabel}>Estado</p>
+          <div style={badge}>
+            <div style={dot} />
+            Activo
+          </div>
+        </div>
       </div>
 
-      {/* Tabla */}
+      {/* LIST */}
       {loading ? (
-        <div className="text-center py-16" style={{ color: "var(--text-muted)" }}>Cargando...</div>
-      ) : restaurants.length === 0 ? (
-        <div className="card p-12 text-center">
-          <p style={{ color: "var(--text-muted)" }}>No hay restaurantes registrados aún.</p>
-          <button onClick={openCreate} className="mt-4 px-4 py-2 rounded-lg text-sm font-semibold"
-            style={{ background: "var(--color-accent)", color: "#fff" }}>
-            Crear el primero
-          </button>
+        <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
+          <div style={spinner(gold)} />
         </div>
       ) : (
-        <div className="card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--border-color)", background: "rgba(0,0,0,0.2)" }}>
-                {["Nombre", "Dirección", "Teléfono", "Horario", "Capacidad", ""].map(h => (
-                  <th key={h} className="px-4 py-3 text-left font-semibold"
-                    style={{ color: "var(--text-muted)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {restaurants.map((r, i) => (
-                <tr key={r._id}
-                  style={{ borderBottom: i < restaurants.length - 1 ? "1px solid var(--border-color)" : "none" }}
-                  className="hover:bg-white/5 transition">
-                  <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>
-                    {r.name}
-                  </td>
-                  <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{r.address || "—"}</td>
-                  <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{r.phone || "—"}</td>
-                  <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{r.openingHours || "—"}</td>
-                  <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>
-                    {r.capacity ? `${r.capacity} personas` : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(r)}
-                        className="px-3 py-1 rounded-lg text-xs font-medium transition hover:opacity-80"
-                        style={{ background: "rgba(183,109,27,0.15)", color: "var(--color-accent)", border: "1px solid rgba(183,109,27,0.3)" }}>
-                        Editar
-                      </button>
-                      <button onClick={() => handleDelete(r._id)}
-                        className="px-3 py-1 rounded-lg text-xs font-medium transition hover:opacity-80"
-                        style={{ background: "rgba(239,68,68,0.1)", color: "var(--color-error)", border: "1px solid rgba(239,68,68,0.2)" }}>
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            gap: "14px",
+          }}
+        >
+          {restaurants.map((r) => (
+            <div key={r._id} style={restaurantCard}>
+
+              {/* TOP */}
+              <div style={restaurantTop}>
+                <span style={tag}>Restaurante</span>
+                <h3 style={{ color: "#fff", fontWeight: 300, marginTop: 10 }}>
+                  {r.name}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
+                  {r.address || "Sin dirección"}
+                </p>
+              </div>
+
+              {/* BODY */}
+              <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+
+                <p style={infoText}> {r.phone || "—"}</p>
+                <p style={infoText}> {r.email || "—"}</p>
+                <p style={infoText}> {r.capacity || "—"} personas</p>
+                <p style={infoText}> {r.openingHours || "—"}</p>
+
+                <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                  <button onClick={() => openEdit(r)} style={btnEdit}>
+                    Editar
+                  </button>
+
+                  <button onClick={() => handleDelete(r._id)} style={btnDelete}>
+                    Eliminar
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl p-6 space-y-4"
-            style={{ background: "var(--bg-primary)", border: "1px solid var(--border-color)" }}>
-            <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+        <div style={overlay}>
+          <div style={modal}>
+
+            <h2 style={{ color: "#fff", fontFamily: serif, fontWeight: 300 }}>
               {editing ? "Editar restaurante" : "Nuevo restaurante"}
             </h2>
-            <form onSubmit={handleSave} className="space-y-3">
-              {[
-                { key: "name",         label: "Nombre *",    placeholder: "El Gepardo" },
-                { key: "address",      label: "Dirección",   placeholder: "Zona 10, Guatemala" },
-                { key: "phone",        label: "Teléfono",    placeholder: "55551234" },
-                { key: "email",        label: "Email",       placeholder: "contacto@gepardo.com" },
-                { key: "capacity",     label: "Capacidad",   placeholder: "60", type: "number" },
-                { key: "openingHours", label: "Horario",     placeholder: "10:00 - 22:00" },
-              ].map(({ key, label, placeholder, type = "text" }) => (
-                <div key={key}>
-                  <label className="block text-xs font-semibold mb-1 uppercase tracking-wider"
-                    style={{ color: "var(--text-muted)" }}>{label}</label>
-                  <input type={type} placeholder={placeholder} value={form[key]}
-                    onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }} />
-                </div>
+
+            <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+
+              {["name", "phone", "email", "capacity"].map((key) => (
+                <input
+                  key={key}
+                  placeholder={key}
+                  value={form[key]}
+                  onChange={(e) =>
+                    setForm({ ...form, [key]: e.target.value })
+                  }
+                  style={input}
+                />
               ))}
-              {error && <p className="text-xs" style={{ color: "var(--color-error)" }}>{error}</p>}
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowModal(false)}
-                  className="flex-1 py-2 rounded-lg text-sm font-medium"
-                  style={{ background: "rgba(255,255,255,0.05)", color: "var(--text-secondary)", border: "1px solid var(--border-color)" }}>
+
+              <input
+                placeholder="Dirección"
+                value={form.address}
+                onChange={(e) =>
+                  setForm({ ...form, address: e.target.value })
+                }
+                style={input}
+              />
+
+              <input
+                placeholder="Horario"
+                value={form.openingHours}
+                onChange={(e) =>
+                  setForm({ ...form, openingHours: e.target.value })
+                }
+                style={input}
+              />
+
+              {error && <p style={errorText}>{error}</p>}
+
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button type="button" onClick={closeModal} style={btnSecondary}>
                   Cancelar
                 </button>
-                <button type="submit" disabled={saving}
-                  className="flex-1 py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
-                  style={{ background: "var(--color-accent)", color: "#fff" }}>
+
+                <button type="submit" disabled={saving} style={btnPrimary(gold, goldLight)}>
                   {saving ? "Guardando..." : editing ? "Actualizar" : "Crear"}
                 </button>
               </div>
+
             </form>
+
           </div>
         </div>
       )}
+
     </div>
   );
 };
+
+/* =========================
+      STYLES
+========================= */
+
+const gold = "#B8860B";
+const goldLight = "#C9972A";
+
+const serif = "'Cormorant Garamond', Georgia, serif";
+
+const cardStyle = {
+  background: "#fff",
+  border: "1px solid #e8e4dc",
+  borderRadius: "14px",
+  padding: "16px",
+};
+
+const statLabel = {
+  fontSize: "12px",
+  color: "#888",
+};
+
+const badge = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  background: "#e7f7ee",
+  padding: "6px 10px",
+  borderRadius: "999px",
+  color: "#1b7a4a",
+  fontSize: "12px",
+};
+
+const dot = {
+  width: "6px",
+  height: "6px",
+  borderRadius: "50%",
+  background: "#1b7a4a",
+};
+
+const restaurantCard = {
+  background: "#0e1e15",
+  borderRadius: "16px",
+  overflow: "hidden",
+};
+
+const restaurantTop = {
+  padding: "16px",
+  background: "linear-gradient(135deg, #0e1e15, #152a21)",
+};
+
+const tag = {
+  fontSize: "10px",
+  color: goldLight,
+  letterSpacing: "0.15em",
+  textTransform: "uppercase",
+};
+
+const infoText = {
+  fontSize: "12px",
+  color: "#444",
+};
+
+const overlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.75)",
+  backdropFilter: "blur(10px)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "20px",
+};
+
+const modal = {
+  width: "100%",
+  maxWidth: "520px",
+  background: "linear-gradient(145deg, #141c18, #0a0e0c)",
+  border: "1px solid rgba(201,151,42,0.25)",
+  borderRadius: "18px",
+  padding: "20px",
+};
+
+const input = {
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(255,255,255,0.04)",
+  color: "#fff",
+};
+
+const errorText = {
+  color: "#ff6b6b",
+  fontSize: "12px",
+};
+
+const btnEdit = {
+  flex: 1,
+  padding: "8px",
+  borderRadius: "8px",
+  border: "1px solid #C9972A",
+  background: "#C9972A15",
+  color: gold,
+};
+
+const btnDelete = {
+  flex: 1,
+  padding: "8px",
+  borderRadius: "8px",
+  border: "1px solid #e57373",
+  background: "#ffebee",
+  color: "#d32f2f",
+};
+
+const btnSecondary = {
+  flex: 1,
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "transparent",
+  color: "rgba(255,255,255,0.7)",
+};
+
+const btnPrimary = (gold, goldLight) => ({
+  flex: 1,
+  padding: "12px",
+  borderRadius: "10px",
+  background: `linear-gradient(135deg, ${gold}, ${goldLight})`,
+  border: "none",
+  color: "#fff",
+  fontWeight: 500,
+  cursor: "pointer",
+});
+
+const spinner = (gold) => ({
+  width: "34px",
+  height: "34px",
+  border: "3px solid #eee",
+  borderTop: `3px solid ${gold}`,
+  borderRadius: "50%",
+  animation: "spin 1s linear infinite",
+});
