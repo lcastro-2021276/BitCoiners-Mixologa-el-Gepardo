@@ -1,16 +1,15 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema({
+    customerName: { type: String, required: true },
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    comment: String,
     restaurant: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Restaurant"
+        ref: "Restaurant",
+        required: true
     },
-    rating: {
-        type: Number,
-        min: 1,
-        max: 5
-    },
-    comment: String
-});
+    isDeleted: { type: Boolean, default: false }
+}, { timestamps: true });
 
-module.exports = mongoose.model("Review", reviewSchema);
+export default mongoose.model("Review", reviewSchema);
