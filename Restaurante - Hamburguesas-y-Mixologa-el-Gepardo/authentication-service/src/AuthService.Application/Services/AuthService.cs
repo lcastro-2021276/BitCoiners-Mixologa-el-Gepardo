@@ -17,61 +17,101 @@ public class AuthService : IAuthService
         _jwt = jwt;
     }
 
-    // ========================= LOGIN =========================
     public async Task<AuthResponseDto> Login(LoginDto dto)
-    {
-        var user = await _users.GetByUsername(dto.Username)
-            ?? await _users.GetByEmail(dto.Username);
+{
+    Console.WriteLine("============ LOGIN DEBUG ============");
+    Console.WriteLine($"EMAIL/USER: {dto.EmailOrUsername}");
+    Console.WriteLine($"PASSWORD: {dto.Password}");
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            return AuthResponseDto.Fail("Credenciales inválidas");
+    var user = await _users.GetByUsername(dto.EmailOrUsername)
+        ?? await _users.GetByEmail(dto.EmailOrUsername);
 
-        if (!user.EmailConfirmed)
-            return AuthResponseDto.Fail("Email no verificado");
+    Console.WriteLine($"USER ENCONTRADO: {user != null}");
 
-        var token = _jwt.GenerateToken(user);
-        return AuthResponseDto.SuccessResponse("Login exitoso", token, user.Username);
-    }
+    if (user == null)
+        return AuthResponseDto.Fail("Credenciales inválidas");
+
+    Console.WriteLine($"USERNAME BD: {user.Username}");
+    Console.WriteLine($"EMAIL BD: {user.Email}");
+    Console.WriteLine($"ROLE BD: {user.Role}");
+    Console.WriteLine($"EMAIL CONFIRMED: {user.EmailConfirmed}");
+    Console.WriteLine($"HASH BD: {user.PasswordHash}");
+
+    var passwordValid = BCrypt.Net.BCrypt.Verify(
+        dto.Password,
+        user.PasswordHash
+    );
+
+    Console.WriteLine($"PASSWORD VALID: {passwordValid}");
+
+    if (!passwordValid)
+        return AuthResponseDto.Fail("Credenciales inválidas");
+
+    var token = _jwt.GenerateToken(user);
+
+    return AuthResponseDto.SuccessResponse(
+        "Login exitoso",
+        token,
+        new
+        {
+            username = user.Username,
+            email = user.Email,
+            role = user.Role
+        }
+    );
+}
 
     // ========================= REGISTER =========================
-    public async Task<AuthResponseDto> Register(RegisterDto dto)
+public async Task<AuthResponseDto> Register(RegisterDto dto)
+{
+    if (string.IsNullOrWhiteSpace(dto.Username) ||
+        string.IsNullOrWhiteSpace(dto.Email) ||
+        string.IsNullOrWhiteSpace(dto.Password))
     {
-        if (string.IsNullOrWhiteSpace(dto.Username) || 
-            string.IsNullOrWhiteSpace(dto.Email) || 
-            string.IsNullOrWhiteSpace(dto.Password))
-        {
-            return AuthResponseDto.Fail("Username, Email y Password son requeridos");
-        }
-
-        if (await _users.GetByUsername(dto.Username) != null)
-            return AuthResponseDto.Fail("El usuario ya existe");
-
-        if (await _users.GetByEmail(dto.Email) != null)
-            return AuthResponseDto.Fail("El email ya está registrado");
-
-        var verificationToken = Guid.NewGuid().ToString();
-
-        var user = new User
-        {
-            Username = dto.Username,
-            Email = dto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Role = string.IsNullOrWhiteSpace(dto.Role) ? "USER" : dto.Role,
-            EmailConfirmed = false,
-            EmailVerificationToken = verificationToken
-        };
-
-        await _users.Add(user);
-
-        // Devolvemos el verificationToken (el GUID) para que el usuario pueda validar su cuenta
-        return AuthResponseDto.SuccessResponse(
-            "Registro exitoso. Usa este token para verificar tu email",
-            verificationToken, 
-            user.Username 
-        );
+        return AuthResponseDto.Fail("Username, Email y Password son requeridos");
     }
 
-    // ========================= VERIFY EMAIL (RESTAURADO) =========================
+    if (await _users.GetByUsername(dto.Username) != null)
+        return AuthResponseDto.Fail("El usuario ya existe");
+
+    if (await _users.GetByEmail(dto.Email) != null)
+        return AuthResponseDto.Fail("El email ya está registrado");
+
+    var verificationToken = Guid.NewGuid().ToString();
+
+    var user = new User
+    {
+        Username = dto.Username,
+        Email = dto.Email,
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+
+        Role = NormalizeRole(
+            string.IsNullOrWhiteSpace(dto.Role)
+                ? "Cliente"
+                : dto.Role
+        ),
+
+        // CAMBIO IMPORTANTE
+        EmailConfirmed = true,
+
+        EmailVerificationToken = verificationToken
+    };
+
+    await _users.Add(user);
+
+    return AuthResponseDto.SuccessResponse(
+        "Registro exitoso",
+        verificationToken,
+        new
+        {
+            username = user.Username,
+            email = user.Email,
+            role = user.Role
+        }
+    );
+}
+
+    // ========================= VERIFY EMAIL =========================
     public async Task<AuthResponseDto> VerifyEmail(string token)
     {
         var user = await _users.GetByVerificationToken(token);
@@ -84,10 +124,17 @@ public class AuthService : IAuthService
 
         await _users.Update(user);
 
-        // Ahora que ya está verificado, le damos su primer JWT real para que entre a la app
         var jwtToken = _jwt.GenerateToken(user);
 
-        return AuthResponseDto.SuccessResponse("Email verificado correctamente", jwtToken, user.Username);
+        return AuthResponseDto.SuccessResponse(
+            "Email verificado correctamente",
+            jwtToken,
+            new
+            {
+                username = user.Username,
+                role = NormalizeRole(user.Role)
+            }
+        );
     }
 
     // ========================= FORGOT PASSWORD =========================
@@ -121,5 +168,19 @@ public class AuthService : IAuthService
         await _users.Update(user);
 
         return AuthResponseDto.SuccessResponse("Contraseña actualizada");
+    }
+
+    // ========================= NORMALIZAR ROLES =========================
+    private string NormalizeRole(string role)
+    {
+        role = role?.Trim().ToLower();
+
+        return role switch
+        {
+            "admin" => "Admin",
+            "cliente" => "Cliente",
+            "user" => "Cliente",
+            _ => "Cliente"
+        };
     }
 }
