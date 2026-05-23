@@ -14,7 +14,12 @@ public class JwtService : IJwtService
     private readonly string _audience;
     private readonly int _expiresMinutes;
 
-    public JwtService(string key, string issuer, string audience, int expiresMinutes)
+    public JwtService(
+        string key,
+        string issuer,
+        string audience,
+        int expiresMinutes
+    )
     {
         _key = key;
         _issuer = issuer;
@@ -25,8 +30,9 @@ public class JwtService : IJwtService
     public string GenerateToken(User user)
     {
         var keyBytes = Encoding.UTF8.GetBytes(_key);
+
         if (keyBytes.Length < 32)
-            throw new Exception("Jwt key debe tener mínimo 32 caracteres");
+            throw new Exception("JWT Key debe tener mínimo 32 caracteres");
 
         var creds = new SigningCredentials(
             new SymmetricSecurityKey(keyBytes),
@@ -35,20 +41,52 @@ public class JwtService : IJwtService
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id),
-            new(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new("role", user.Role),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            // ID USUARIO
+            new(
+                JwtRegisteredClaimNames.Sub,
+                user.Id.ToString()
+            ),
+
+            // USERNAME
+            new(
+                JwtRegisteredClaimNames.UniqueName,
+                user.Username
+            ),
+
+            // EMAIL
+            new(
+                JwtRegisteredClaimNames.Email,
+                user.Email
+            ),
+
+            // ROLE ASP.NET
+            new(
+                ClaimTypes.Role,
+                user.Role
+            ),
+
+            // ROLE PERSONALIZADO
+            new(
+                "role",
+                user.Role
+            ),
+
+            // TOKEN ID
+            new(
+                JwtRegisteredClaimNames.Jti,
+                Guid.NewGuid().ToString()
+            )
         };
 
         var token = new JwtSecurityToken(
-            _issuer,
-            _audience,
-            claims,
+            issuer: _issuer,
+            audience: _audience,
+            claims: claims,
             expires: DateTime.UtcNow.AddMinutes(_expiresMinutes),
             signingCredentials: creds
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return new JwtSecurityTokenHandler()
+            .WriteToken(token);
     }
 }
