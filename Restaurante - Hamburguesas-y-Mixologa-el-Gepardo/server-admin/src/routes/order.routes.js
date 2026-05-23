@@ -1,6 +1,7 @@
-const express = require("express");
+import express from "express";
+import { createOrder, getOrders, updateStatus } from "../controllers/orderController.js";
+
 const router = express.Router();
-const controller = require("../controllers/orderController");
 
 /**
  * @swagger
@@ -31,7 +32,7 @@ const controller = require("../controllers/orderController");
  *       400:
  *         description: Datos inválidos
  */
-router.post("/", controller.createOrder);
+router.post("/", createOrder);
 
 /**
  * @swagger
@@ -44,7 +45,7 @@ router.post("/", controller.createOrder);
  *       200:
  *         description: Lista de pedidos
  */
-router.get("/", controller.getOrders);
+router.get("/", getOrders);
 
 /**
  * @swagger
@@ -72,6 +73,6 @@ router.get("/", controller.getOrders);
  *       404:
  *         description: Pedido no encontrado
  */
-router.put("/:id/status", controller.updateStatus);
+router.put("/:id/status", updateStatus);
 
-module.exports = router;
+export default router;

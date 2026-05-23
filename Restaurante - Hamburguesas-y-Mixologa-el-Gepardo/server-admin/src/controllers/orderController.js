@@ -1,8 +1,7 @@
-const Order = require("../models/Order");
-const Menu = require("../models/Menu");
+import Order from "../models/Order.js";
+import Menu from "../models/MenuItem.js";
 
-
-exports.createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
     try {
         const { table, items } = req.body;
 
@@ -40,8 +39,7 @@ exports.createOrder = async (req, res) => {
     }
 };
 
-
-exports.updateStatus = async (req, res) => {
+export const updateStatus = async (req, res) => {
     try {
         const { status } = req.body;
 
@@ -57,8 +55,7 @@ exports.updateStatus = async (req, res) => {
     }
 };
 
-// Obtener pedidos
-exports.getOrders = async (req, res) => {
+export const getOrders = async (req, res) => {
     const orders = await Order.find().populate("table items.menuItem");
     res.json(orders);
 };

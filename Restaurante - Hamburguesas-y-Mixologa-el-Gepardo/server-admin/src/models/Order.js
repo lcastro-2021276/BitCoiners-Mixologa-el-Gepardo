@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
     {
@@ -11,7 +11,7 @@ const orderSchema = new mongoose.Schema(
             {
                 menuItem: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "Menu",
+                    ref: "MenuItem",
                     required: true,
                 },
                 quantity: {
@@ -38,4 +38,4 @@ const orderSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-module.exports = mongoose.model("Order", orderSchema);
+export default mongoose.model("Order", orderSchema);
