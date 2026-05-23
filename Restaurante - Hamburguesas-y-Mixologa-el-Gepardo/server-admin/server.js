@@ -10,6 +10,11 @@ import roleRoutes from "./src/routes/role.routes.js";
 import restaurantRoutes from "./src/routes/restaurant.routes.js";
 import tableRoutes from "./src/routes/table.routes.js";
 import menuItemRoutes from "./src/routes/menuItem.routes.js";
+import orderRoutes from "./src/routes/order.routes.js"; 
+import userRoutes from "./src/routes/user.routes.js";
+import reservationRoutes from "./src/routes/reservation.routes.js";
+import reviewRoutes from "./src/routes/review.routes.js";
+
 
 dotenv.config();
 
@@ -46,7 +51,10 @@ const swaggerOptions = {
         "./src/routes/role.routes.js",
         "./src/routes/menuItem.routes.js",
         "./src/routes/restaurant.routes.js",
-        "./src/routes/table.routes.js"
+        "./src/routes/table.routes.js",
+        "./src/routes/order.routes.js",
+        "./src/routes/user.routes.js",
+        "./src/routes/reservation.routes.js"
     ]
 };
 
@@ -62,6 +70,10 @@ app.use("/roles", roleRoutes);
 app.use("/restaurants", restaurantRoutes);
 app.use("/tables", tableRoutes);
 app.use("/menu-items", menuItemRoutes);
+app.use("/orders", orderRoutes);
+app.use("/users", userRoutes);
+app.use("/reservations", reservationRoutes);
+app.use("/reviews", reviewRoutes);
 
 app.listen(3000, () => {
     console.log("Servidor corriendo en http://localhost:3000");
