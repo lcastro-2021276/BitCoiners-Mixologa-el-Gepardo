@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { AppRoutes } from "./app/routes/AppRoutes";
 import { useAuthStore } from "./features/auth/store/authStore";
-import "./App.css";
+
 
 function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);

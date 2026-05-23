@@ -13,33 +13,38 @@ export const DashboardContainer = ({ user, onLogout, title, subtitle, children }
     navigate("/login", { replace: true });
   };
 
-return (
-  <div style={{ display: "flex", height: "100vh", background: "var(--bg-dark)", color: "var(--text-primary)" }}>
-    
-    {sidebarOpen && (
-      <div
-        className="fixed inset-0 z-20 bg-black/60 lg:hidden"
-        onClick={() => setSidebarOpen(false)}
-      />
-    )}
+  return (
+    <div style={{ display: "flex", height: "100vh", background: "#f5f0e8", color: "#1a1a1a" }}>
 
-    <Sidebar
-      user={user}
-      onLogout={handleLogout}
-      isOpen={sidebarOpen}
-      onClose={() => setSidebarOpen(false)}
-    />
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/60 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
-      <Navbar
-        title={title}
-        subtitle={subtitle}
-        onMenuOpen={() => setSidebarOpen(true)}
+      <Sidebar
+        user={user}
+        onLogout={handleLogout}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
-      <main style={{ flex: 1, padding: "24px", overflowY: "auto", background: "var(--bg-dark)" }}>
-        {children}
-      </main>
+
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
+        <Navbar
+          title={title}
+          subtitle={subtitle}
+          onMenuOpen={() => setSidebarOpen(true)}
+        />
+        <main style={{
+          flex: 1,
+          padding: "24px",
+          overflowY: "auto",
+          background: "#f5f0e8",
+        }}>
+          {children}
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
 };
