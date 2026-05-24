@@ -139,9 +139,11 @@ export const Navbar = ({
                 ? user?.name || "Administrador"
                 : user?.username || user?.name || "Cliente"}
             </p>
-            <p className="text-[11px] text-zinc-500">
-              {isAdmin ? "Administrador" : "Cliente activo"}
-            </p>
+            {isAdmin && (
+              <p className="text-[11px] text-zinc-500">
+                Administrador
+              </p>
+            )}
           </div>
 
           <ChevronDownIcon className="h-3.5 w-3.5 text-zinc-500 transition-transform duration-200 group-hover:translate-y-0.5" />
