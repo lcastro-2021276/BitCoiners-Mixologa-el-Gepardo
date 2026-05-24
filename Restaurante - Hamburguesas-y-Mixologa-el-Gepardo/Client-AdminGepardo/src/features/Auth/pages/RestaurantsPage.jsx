@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
+import { useAuthStore } from "../store/authStore.js";
+import { uploadToCloudinary } from "../../../shared/hooks/useCloudinaryUpload.js";
 
 const EMPTY_FORM = {
   name: "",
@@ -8,6 +10,7 @@ const EMPTY_FORM = {
   email: "",
   capacity: "",
   openingHours: "",
+  imageUrl: "",
 };
 
 export const RestaurantsPage = () => {
@@ -19,11 +22,15 @@ export const RestaurantsPage = () => {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const gold = "#B8860B";
   const goldLight = "#C9972A";
   const serif = "'Cormorant Garamond', Georgia, serif";
+
+  const { user } = useAuthStore();
+  const isClient = user?.role === "Cliente" || user?.role === "CLIENT";
 
   /* =========================
         FETCH
@@ -61,17 +68,33 @@ export const RestaurantsPage = () => {
       email: r.email || "",
       capacity: r.capacity || "",
       openingHours: r.openingHours || "",
+      imageUrl: r.imageUrl || "",
     });
     setError("");
     setShowModal(true);
   };
 
   const closeModal = () => {
-    if (saving) return;
+    if (saving || uploading) return;
     setShowModal(false);
     setEditing(null);
     setForm(EMPTY_FORM);
     setError("");
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const url = await uploadToCloudinary(file);
+      setForm((prev) => ({ ...prev, imageUrl: url }));
+    } catch (err) {
+      setError(err.message || "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+    }
   };
 
   /* =========================
@@ -141,9 +164,10 @@ export const RestaurantsPage = () => {
         </h1>
 
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginTop: "10px" }}>
-          Administra ubicaciones, horarios y capacidad operativa
+          {isClient ? "Explora nuestras sucursales y horarios" : "Administra ubicaciones, horarios y capacidad operativa"}
         </p>
 
+        {!isClient && (
         <button
           onClick={openCreate}
           style={{
@@ -158,6 +182,7 @@ export const RestaurantsPage = () => {
         >
           + Nuevo restaurante
         </button>
+        )}
       </section>
 
       {/* STATS */}
@@ -202,6 +227,22 @@ export const RestaurantsPage = () => {
           {restaurants.map((r) => (
             <div key={r._id} style={restaurantCard}>
 
+              {/* IMAGEN */}
+              {r.imageUrl ? (
+                <img
+                  src={r.imageUrl}
+                  alt={r.name}
+                  style={{ width: "100%", height: "180px", objectFit: "cover", display: "block" }}
+                />
+              ) : (
+                <div style={{
+                  width: "100%", height: "100px",
+                  background: "linear-gradient(135deg, #0e1e15, #1a3a25)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 36
+                }}>🏪</div>
+              )}
+
               {/* TOP */}
               <div style={restaurantTop}>
                 <span style={tag}>Restaurante</span>
@@ -221,6 +262,7 @@ export const RestaurantsPage = () => {
                 <p style={infoText}> {r.capacity || "—"} personas</p>
                 <p style={infoText}> {r.openingHours || "—"}</p>
 
+                {!isClient && (
                 <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
                   <button onClick={() => openEdit(r)} style={btnEdit}>
                     Editar
@@ -230,6 +272,7 @@ export const RestaurantsPage = () => {
                     Eliminar
                   </button>
                 </div>
+                )}
 
               </div>
             </div>
@@ -277,6 +320,32 @@ export const RestaurantsPage = () => {
                 style={input}
               />
 
+              {/* IMAGEN */}
+              <div>
+                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", display: "block", marginBottom: 6 }}>
+                  Imagen del restaurante
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={uploading}
+                  style={{ ...input, cursor: "pointer", fontSize: "12px" }}
+                />
+                {uploading && (
+                  <p style={{ color: "#C9972A", fontSize: "12px", marginTop: 6 }}>
+                    ⏳ Subiendo imagen...
+                  </p>
+                )}
+                {form.imageUrl && !uploading && (
+                  <img
+                    src={form.imageUrl}
+                    alt="Preview"
+                    style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 10, marginTop: 8 }}
+                  />
+                )}
+              </div>
+
               {error && <p style={errorText}>{error}</p>}
 
               <div style={{ display: "flex", gap: "10px" }}>
@@ -284,7 +353,7 @@ export const RestaurantsPage = () => {
                   Cancelar
                 </button>
 
-                <button type="submit" disabled={saving} style={btnPrimary(gold, goldLight)}>
+                <button type="submit" disabled={saving || uploading} style={btnPrimary(gold, goldLight)}>
                   {saving ? "Guardando..." : editing ? "Actualizar" : "Crear"}
                 </button>
               </div>

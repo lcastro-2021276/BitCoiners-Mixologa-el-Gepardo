@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
+import { useAuthStore } from "../store/authStore.js";
 
 const EMPTY_FORM = {
   number: "",
@@ -23,6 +24,9 @@ export const TablesPage = () => {
   const gold = "#B8860B";
   const goldLight = "#C9972A";
   const serif = "'Cormorant Garamond', Georgia, serif";
+
+  const { user } = useAuthStore();
+  const isClient = user?.role === "Cliente" || user?.role === "CLIENT";
 
   const fetchAll = async () => {
     try {
@@ -138,12 +142,14 @@ export const TablesPage = () => {
         </h1>
 
         <p style={sub}>
-          Gestiona disponibilidad y asignación de mesas en tiempo real
+          {isClient ? "Consulta la disponibilidad de mesas" : "Gestiona disponibilidad y asignación de mesas en tiempo real"}
         </p>
 
+        {!isClient && (
         <button onClick={openCreate} style={btnPrimary(gold, goldLight)}>
           + Nueva mesa
         </button>
+        )}
       </section>
 
       {/* STATS */}
@@ -230,26 +236,32 @@ export const TablesPage = () => {
                   {/* ACTIONS */}
                   <div style={actions}>
 
+                    {!isClient && (
                     <button
                       onClick={() => toggleStatus(t)}
                       style={toggleBtn(isFree)}
                     >
                       {isFree ? "Ocupar" : "Liberar"}
                     </button>
+                    )}
 
+                    {!isClient && (
                     <button
                       onClick={() => openEdit(t)}
                       style={iconBtn("#f59e0b")}
                     >
                       ✏️
                     </button>
+                    )}
 
+                    {!isClient && (
                     <button
                       onClick={() => handleDelete(t._id)}
                       style={iconBtn("#ef4444")}
                     >
                       🗑️
                     </button>
+                    )}
 
                   </div>
 

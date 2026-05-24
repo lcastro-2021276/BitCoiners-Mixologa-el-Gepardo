@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
+import { useAuthStore } from "../store/authStore.js";
+import { uploadToCloudinary } from "../../../shared/hooks/useCloudinaryUpload.js";
 
 const EMPTY_FORM = {
   name: "",
@@ -7,6 +9,7 @@ const EMPTY_FORM = {
   price: "",
   category: "",
   restaurant: "",
+  imageUrl: "",
 };
 
 const CATEGORIES = [
@@ -29,6 +32,7 @@ export const MenuPage = () => {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const [filterRest, setFilterRest] = useState("all");
@@ -37,6 +41,9 @@ export const MenuPage = () => {
   const gold = "#B8860B";
   const goldLight = "#C9972A";
   const serif = "'Cormorant Garamond', Georgia, serif";
+
+  const { user } = useAuthStore();
+  const isClient = user?.role === "Cliente" || user?.role === "CLIENT";
 
   /* =========================
         DATA FETCH
@@ -82,17 +89,33 @@ export const MenuPage = () => {
       price: item.price,
       category: item.category || "",
       restaurant: item.restaurant?._id || item.restaurant,
+      imageUrl: item.imageUrl || "",
     });
     setError("");
     setShowModal(true);
   };
 
   const closeModal = () => {
-    if (saving) return;
+    if (saving || uploading) return;
     setShowModal(false);
     setEditing(null);
     setForm(EMPTY_FORM);
     setError("");
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const url = await uploadToCloudinary(file);
+      setForm((prev) => ({ ...prev, imageUrl: url }));
+    } catch (err) {
+      setError(err.message || "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+    }
   };
 
   /* =========================
@@ -175,9 +198,10 @@ export const MenuPage = () => {
         </h1>
 
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", marginTop: "10px" }}>
-          Administra platillos, bebidas y categorías del restaurante
+          {isClient ? "Explora nuestros platillos y bebidas" : "Administra platillos, bebidas y categorías del restaurante"}
         </p>
 
+        {!isClient && (
         <button
           onClick={openCreate}
           style={{
@@ -192,6 +216,7 @@ export const MenuPage = () => {
         >
           + Nuevo item
         </button>
+        )}
       </section>
 
       {/* FILTERS */}
@@ -267,11 +292,27 @@ export const MenuPage = () => {
                 overflow: "hidden",
               }}
             >
-              <div style={{ background: "#0e1e15", padding: "14px", color: "#fff" }}>
-                <small style={{ color: goldLight }}>
-                  {item.category || "Sin categoría"}
-                </small>
-                <h3 style={{ margin: 0, fontWeight: 300 }}>{item.name}</h3>
+              <div style={{ background: "#0e1e15", padding: "0", color: "#fff", overflow: "hidden" }}>
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    style={{ width: "100%", height: "160px", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  <div style={{
+                    width: "100%", height: "100px",
+                    background: "linear-gradient(135deg, #0e1e15, #1a3a25)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 32
+                  }}>🍽️</div>
+                )}
+                <div style={{ padding: "12px 14px" }}>
+                  <small style={{ color: goldLight }}>
+                    {item.category || "Sin categoría"}
+                  </small>
+                  <h3 style={{ margin: "4px 0 0", fontWeight: 300 }}>{item.name}</h3>
+                </div>
               </div>
 
               <div style={{ padding: "14px" }}>
@@ -283,10 +324,12 @@ export const MenuPage = () => {
                   Q{Number(item.price).toFixed(2)}
                 </p>
 
+                {!isClient && (
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button onClick={() => openEdit(item)}>Editar</button>
                   <button onClick={() => handleDelete(item._id)}>Eliminar</button>
                 </div>
+                )}
               </div>
             </div>
           ))}
@@ -379,6 +422,32 @@ export const MenuPage = () => {
                 ))}
               </select>
 
+              {/* IMAGEN */}
+              <div>
+                <label style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", display: "block", marginBottom: 6 }}>
+                  Imagen del platillo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={uploading}
+                  style={{ ...inputStyle, cursor: "pointer", fontSize: "12px" }}
+                />
+                {uploading && (
+                  <p style={{ color: "#C9972A", fontSize: "12px", marginTop: 6 }}>
+                    ⏳ Subiendo imagen...
+                  </p>
+                )}
+                {form.imageUrl && !uploading && (
+                  <img
+                    src={form.imageUrl}
+                    alt="Preview"
+                    style={{ width: "100%", height: 140, objectFit: "cover", borderRadius: 10, marginTop: 8 }}
+                  />
+                )}
+              </div>
+
               {error && (
                 <p style={{ color: "#ff6b6b", fontSize: "12px" }}>
                   {error}
@@ -390,7 +459,7 @@ export const MenuPage = () => {
                   Cancelar
                 </button>
 
-                <button type="submit" disabled={saving} style={btnPrimary(gold, goldLight)}>
+                <button type="submit" disabled={saving || uploading} style={btnPrimary(gold, goldLight)}>
                   {saving ? "Guardando..." : editing ? "Actualizar" : "Crear"}
                 </button>
               </div>
