@@ -27,11 +27,11 @@ const ACTIVITY = [
 
 export const DashboardHome = () => {
   const user = useAuthStore((s) => s.user);
+  const isClient = user?.role === "Cliente" || user?.role === "CLIENT";
 
   return (
     <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "28px" }}>
 
-      
       <section style={{
         position: "relative",
         overflow: "hidden",
@@ -46,19 +46,21 @@ export const DashboardHome = () => {
         }} />
 
         <p style={{ fontSize: "10px", fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: `${gold}99`, marginBottom: "16px" }}>
-          Panel Administrativo
+          {isClient ? "Panel Cliente" : "Panel Administrativo"}
         </p>
 
         <h1 style={{ fontFamily: serif, fontSize: "44px", fontWeight: 300, color: "#fff", lineHeight: 1.1, margin: 0 }}>
           Bienvenido,
           <span style={{ display: "block", color: goldLight }}>
-            {user?.name || "Administrador"}
+            {user?.name || (isClient ? "Cliente" : "Administrador")}
           </span>
         </h1>
 
         <p style={{ marginTop: "16px", fontSize: "13px", lineHeight: 1.7, color: "rgba(255,255,255,0.45)", maxWidth: "520px" }}>
-          Gestiona pedidos, reservaciones, mesas y la experiencia gastronómica de{" "}
-          <span style={{ color: `${goldLight}cc` }}>Hamburguesas y Mixología El Gepardo</span>.
+          {isClient
+            ? <>Realiza tus pedidos y disfruta la experiencia de{" "}<span style={{ color: `${goldLight}cc` }}>Hamburguesas y Mixología El Gepardo</span>.</>
+            : <>Gestiona pedidos, reservaciones, mesas y la experiencia gastronómica de{" "}<span style={{ color: `${goldLight}cc` }}>Hamburguesas y Mixología El Gepardo</span>.</>
+          }
         </p>
 
         <div style={{ marginTop: "28px", display: "flex", gap: "12px" }}>
@@ -69,14 +71,16 @@ export const DashboardHome = () => {
           }}>
             Ver pedidos
           </button>
-          <button style={{
-            background: "transparent", color: "rgba(255,255,255,0.55)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "8px", padding: "10px 24px",
-            fontSize: "12px", fontWeight: 400, letterSpacing: "0.06em", cursor: "pointer",
-          }}>
-            Gestionar menú
-          </button>
+          {!isClient && (
+            <button style={{
+              background: "transparent", color: "rgba(255,255,255,0.55)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "8px", padding: "10px 24px",
+              fontSize: "12px", fontWeight: 400, letterSpacing: "0.06em", cursor: "pointer",
+            }}>
+              Gestionar menú
+            </button>
+          )}
         </div>
 
         <div style={{
@@ -85,7 +89,6 @@ export const DashboardHome = () => {
         }} />
       </section>
 
-      
       <section style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
         {STATS.map(({ label, value, icon: Icon }) => (
           <div key={label} style={{
@@ -111,10 +114,8 @@ export const DashboardHome = () => {
         ))}
       </section>
 
-      
       <section style={{ display: "grid", gridTemplateColumns: "1fr 220px", gap: "16px" }}>
 
-        
         <div style={{ background: "#fff", border: "1px solid #e8e4dc", borderRadius: "12px", padding: "24px 28px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
             <div>
@@ -147,7 +148,6 @@ export const DashboardHome = () => {
           </div>
         </div>
 
-        
         <div style={{ background: "#111008", borderRadius: "12px", padding: "28px 24px", display: "flex", flexDirection: "column" }}>
           <p style={{ fontSize: "10px", fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", margin: 0 }}>
             Rendimiento
@@ -181,7 +181,6 @@ export const DashboardHome = () => {
         </div>
       </section>
 
-      
       <div style={{
         display: "flex", alignItems: "center", gap: "14px",
         background: "#fff", border: "1px solid #e8e4dc",
@@ -196,7 +195,10 @@ export const DashboardHome = () => {
         </div>
         <p style={{ fontSize: "12px", color: "#888", margin: 0, lineHeight: 1.6 }}>
           <span style={{ fontWeight: 500, color: "#444" }}>Consejo rápido — </span>
-          Usa el menú lateral para administrar pedidos, mesas y reservas rápidamente.
+          {isClient
+            ? "Usa el menú lateral para hacer pedidos y consultar tus reservaciones."
+            : "Usa el menú lateral para administrar pedidos, mesas y reservas rápidamente."
+          }
         </p>
       </div>
 
