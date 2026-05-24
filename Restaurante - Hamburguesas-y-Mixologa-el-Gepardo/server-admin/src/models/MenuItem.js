@@ -5,6 +5,7 @@ const menuItemSchema = new mongoose.Schema({
     description: String,
     price: { type: Number, required: true },
     category: String,
+    imageUrl: String,
     restaurant: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Restaurant",
