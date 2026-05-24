@@ -7,6 +7,7 @@ const restaurantSchema = new mongoose.Schema({
     email: String,
     capacity: Number,
     openingHours: String,
+    imageUrl: String,
     isDeleted: {
         type: Boolean,
         default: false
