@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
 import { useAuthStore } from "../store/authStore.js";
 import { uploadToCloudinary } from "../../../shared/hooks/useCloudinaryUpload.js";
+import ConfirmDialog from "../../../shared/components/ConfirmDialog.jsx";
 
 const EMPTY_FORM = {
   name: "",
@@ -24,6 +25,7 @@ export const RestaurantsPage = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, restaurantId: null, restaurantName: "" });
 
   const gold = "#B8860B";
   const goldLight = "#C9972A";
@@ -128,10 +130,22 @@ export const RestaurantsPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("¿Eliminar este restaurante?")) return;
+    const restaurant = restaurants.find(r => r._id === id);
+    setDeleteDialog({
+      isOpen: true,
+      restaurantId: id,
+      restaurantName: restaurant?.name || "este restaurante"
+    });
+  };
 
-    await axiosAdmin.delete(`/restaurants/${id}`);
-    fetchRestaurants();
+  const confirmDelete = async () => {
+    try {
+      await axiosAdmin.delete(`/restaurants/${deleteDialog.restaurantId}`);
+      fetchRestaurants();
+      setDeleteDialog({ isOpen: false, restaurantId: null, restaurantName: "" });
+    } catch (err) {
+      console.error("Error al eliminar:", err);
+    }
   };
 
   const totalCapacity = restaurants.reduce(
@@ -363,6 +377,18 @@ export const RestaurantsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, restaurantId: null, restaurantName: "" })}
+        onConfirm={confirmDelete}
+        title="Eliminar restaurante"
+        message={`¿Estás seguro de que deseas eliminar el restaurante "${deleteDialog.restaurantName}"? Esta acción se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
 
     </div>
   );
