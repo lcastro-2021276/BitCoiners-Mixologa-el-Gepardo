@@ -1,19 +1,28 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { LoginForm } from "../components/LoginForm";
 import { ForgotPassword } from "../components/ForgotPassword";
+import { ResetPassword } from "../components/ResetPassword";
  
 import bgLogo from "../../../assets/img/mixologias.png";
  
 export const AuthPage = () => {
   const [view, setView] = useState("login");
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
- 
+  const resetToken = searchParams.get("token");
+
   useEffect(() => {
     if (isAuthenticated) navigate("/dashboard", { replace: true });
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (resetToken) {
+      setView("reset");
+    }
+  }, [resetToken]);
  
   return (
     <div style={{
@@ -91,7 +100,7 @@ export const AuthPage = () => {
               color: "#1a3d2b",
               opacity: 0.5,
             }}>
-              {view === "login" ? "Panel Administrativo" : "Recuperar contraseña"}
+              {view === "login" ? "Panel Administrativo" : view === "forgot" ? "Recuperar contraseña" : "Restablecer contraseña"}
             </span>
           </div>
  
@@ -104,12 +113,14 @@ export const AuthPage = () => {
               marginBottom: "6px",
               letterSpacing: "-0.3px",
             }}>
-              {view === "login" ? "Iniciar sesión" : "Recuperar contraseña"}
+              {view === "login" ? "Iniciar sesión" : view === "forgot" ? "Recuperar contraseña" : "Restablecer contraseña"}
             </h2>
             <p style={{ color: "#888", fontSize: "13px", lineHeight: 1.6 }}>
               {view === "login"
                 ? "Ingresa tus credenciales para acceder al sistema."
-                : "Escribe tu correo para recuperar el acceso."}
+                : view === "forgot"
+                ? "Escribe tu correo para recuperar el acceso."
+                : "Ingresa tu nueva contraseña para restablecer tu cuenta."}
             </p>
           </div>
  
@@ -150,7 +161,9 @@ export const AuthPage = () => {
           <div className="gepardo-form-wrapper">
             {view === "login"
               ? <LoginForm onForgot={() => setView("forgot")} />
-              : <ForgotPassword onSwitch={() => setView("login")} />
+              : view === "forgot"
+              ? <ForgotPassword onSwitch={() => setView("login")} />
+              : <ResetPassword token={resetToken} onSwitch={() => setView("login")} />
             }
           </div>
         </div>
