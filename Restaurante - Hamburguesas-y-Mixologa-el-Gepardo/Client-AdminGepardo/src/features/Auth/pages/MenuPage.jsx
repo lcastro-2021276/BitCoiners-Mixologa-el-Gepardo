@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
 import { useAuthStore } from "../store/authStore.js";
 import { uploadToCloudinary } from "../../../shared/hooks/useCloudinaryUpload.js";
+import ConfirmDialog from "../../../shared/components/ConfirmDialog.jsx";
 
 const EMPTY_FORM = {
   name: "",
@@ -37,6 +38,7 @@ export const MenuPage = () => {
 
   const [filterRest, setFilterRest] = useState("all");
   const [filterCat, setFilterCat] = useState("all");
+  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, itemId: null, itemName: "" });
 
   const gold = "#B8860B";
   const goldLight = "#C9972A";
@@ -149,10 +151,22 @@ export const MenuPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("¿Eliminar este item del menú?")) return;
+    const item = items.find(i => i._id === id);
+    setDeleteDialog({
+      isOpen: true,
+      itemId: id,
+      itemName: item?.name || "este item"
+    });
+  };
 
-    await axiosAdmin.delete(`/menu-items/${id}`);
-    fetchAll();
+  const confirmDelete = async () => {
+    try {
+      await axiosAdmin.delete(`/menu-items/${deleteDialog.itemId}`);
+      fetchAll();
+      setDeleteDialog({ isOpen: false, itemId: null, itemName: "" });
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+    }
   };
 
   /* =========================
@@ -326,8 +340,52 @@ export const MenuPage = () => {
 
                 {!isClient && (
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <button onClick={() => openEdit(item)}>Editar</button>
-                  <button onClick={() => handleDelete(item._id)}>Eliminar</button>
+                  <button 
+                    onClick={() => openEdit(item)}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #C9972A",
+                      background: "transparent",
+                      color: "#C9972A",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      transition: "all 0.2s"
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.background = "#C9972A";
+                      e.target.style.color = "#fff";
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.background = "transparent";
+                      e.target.style.color = "#C9972A";
+                    }}
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(item._id)}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #ef4444",
+                      background: "transparent",
+                      color: "#ef4444",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      transition: "all 0.2s"
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.background = "#ef4444";
+                      e.target.style.color = "#fff";
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.background = "transparent";
+                      e.target.style.color = "#ef4444";
+                    }}
+                  >
+                    Eliminar
+                  </button>
                 </div>
                 )}
               </div>
@@ -468,6 +526,18 @@ export const MenuPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, itemId: null, itemName: "" })}
+        onConfirm={confirmDelete}
+        title="Eliminar item del menú"
+        message={`¿Estás seguro de que deseas eliminar "${deleteDialog.itemName}" del menú? Esta acción se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
     </div>
   );
 };
