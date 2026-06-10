@@ -43,8 +43,8 @@ export const updateStatus = async (req, res) => {
     try {
         const { status } = req.body;
 
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
+        const order = await Order.findOneAndUpdate(
+            { _id: req.params.id, isDeleted: false },
             { status },
             { new: true }
         );
@@ -56,6 +56,22 @@ export const updateStatus = async (req, res) => {
 };
 
 export const getOrders = async (req, res) => {
-    const orders = await Order.find().populate("table items.menuItem");
+    const orders = await Order.find({ isDeleted: false }).populate("table items.menuItem");
     res.json(orders);
+};
+
+export const deleteOrder = async (req, res) => {
+    try {
+        const order = await Order.findOneAndUpdate(
+            { _id: req.params.id, isDeleted: false },
+            { isDeleted: true },
+            { new: true }
+        );
+        if (!order) {
+            return res.status(404).json({ message: "Pedido no encontrado" });
+        }
+        res.json({ message: "Pedido eliminado correctamente" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
