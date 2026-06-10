@@ -63,7 +63,7 @@ export const register = async (req, res) => {
 ========================= */
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find()
+    const users = await User.find({ isDeleted: false })
       .populate("role", "name")
       .select("-password")
       .sort({ createdAt: -1 });
@@ -80,7 +80,7 @@ export const getUsers = async (req, res) => {
 ========================= */
 export const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const user = await User.findOne({ _id: req.params.id, isDeleted: false })
       .populate("role", "name")
       .select("-password");
 
@@ -143,7 +143,11 @@ export const updateUser = async (req, res) => {
     if (role) update.role = role;
     if (password) update.password = password;
 
-    const user = await User.findByIdAndUpdate(req.params.id, update, { new: true })
+    const user = await User.findOneAndUpdate(
+      { _id: req.params.id, isDeleted: false },
+      update,
+      { new: true }
+    )
       .populate("role", "name")
       .select("-password");
 
@@ -167,7 +171,11 @@ export const deleteUser = async (req, res) => {
       return res.status(400).json({ message: "ID de usuario no válido" });
     }
 
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findOneAndUpdate(
+      { _id: req.params.id, isDeleted: false },
+      { isDeleted: true },
+      { new: true }
+    );
 
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
