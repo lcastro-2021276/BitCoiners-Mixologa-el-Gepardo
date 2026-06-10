@@ -1,154 +1,116 @@
-// Navbar.jsx
 import {
   Bars3Icon,
   BellIcon,
   MagnifyingGlassIcon,
   ChevronDownIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 
-export const Navbar = ({
-  title,
-  subtitle,
-  onMenuOpen,
-  user,
-}) => {
-
+export const Navbar = ({ title, subtitle, onMenuOpen, user }) => {
   const isAdmin =
     user?.role === "Admin" ||
-    user?.role === "ADMIN";
+    user?.role === "ADMIN" ||
+    user?.role === "admin";
+
+  const initials =
+    (user?.name || user?.username || "U")
+      .split(" ")
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "U";
 
   return (
-    <header
-      className="
-        sticky top-0 z-30
-        flex h-[68px] items-center gap-6
-        border-b border-[#1a3022]
-        bg-[#0d1b14]
-        px-6
-      "
-    >
-      {/* MENU MOBILE */}
+    <header className="sticky top-0 z-30 flex h-[72px] items-center gap-5 border-b border-amber-900/20 bg-gradient-to-r from-[#0d1b14] via-[#0f1f16] to-[#0d1b14] px-6 backdrop-blur-xl shadow-lg shadow-black/20">
+
+      {/* Hamburger – mobile only */}
       <button
         onClick={onMenuOpen}
-        className="
-          flex h-9 w-9 items-center justify-center
-          rounded-lg text-zinc-400
-          transition-colors duration-200
-          hover:bg-white/8 hover:text-white
-          lg:hidden
-        "
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition-all duration-300 hover:bg-amber-400/10 hover:text-amber-300 lg:hidden"
       >
         <Bars3Icon className="h-5 w-5" />
       </button>
 
-      {/* TITLE BLOCK */}
-      <div className="flex flex-1 items-center gap-3">
-        {/* Accent bar */}
-        <div className="h-8 w-[3px] rounded-full bg-amber-400" />
-
-        <div>
-          <h1 className="text-[17px] font-bold text-white leading-tight tracking-tight">
-            {title}
-          </h1>
+      {/* Brand / page title */}
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className="hidden h-8 w-[2px] shrink-0 rounded-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-400 lg:block shadow-lg shadow-amber-500/30" />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <SparklesIcon className="h-4 w-4 text-amber-400" />
+            <h1 className="truncate text-[16px] font-bold leading-tight tracking-tight text-white">
+              {title}
+            </h1>
+          </div>
           {subtitle && (
-            <p className="text-[11px] text-zinc-500 leading-tight mt-0.5">
+            <p className="truncate text-[11px] leading-tight text-amber-400/60 mt-0.5 font-medium">
               {subtitle}
             </p>
           )}
         </div>
       </div>
 
-      {/* SEARCH */}
-      <div className="relative hidden lg:flex items-center">
-        <MagnifyingGlassIcon className="absolute left-3 h-4 w-4 text-zinc-500 pointer-events-none" />
-        <input
-          type="text"
-          placeholder={
-            isAdmin ? "Buscar pedidos, usuarios..." : "Buscar hamburguesas..."
-          }
-          className="
-            w-[220px] pl-9 pr-4 py-2
-            rounded-lg
-            border border-[#1a3022]
-            bg-[#0f2018]
-            text-[13px] text-white
-            placeholder:text-zinc-500
-            outline-none
-            transition-all duration-200
-            focus:border-amber-400/40 focus:w-[260px]
-          "
-        />
-      </div>
+      {/* ── Desktop right section ── */}
+      <div className="hidden lg:flex items-center gap-4 shrink-0">
 
-      {/* ACTIONS */}
-      <div className="flex items-center gap-3">
-
-        {/* NOTIFICATIONS */}
-        <button
-          className="
-            relative flex h-9 w-9 items-center justify-center
-            rounded-lg
-            border border-[#1a3022]
-            bg-[#0f2018]
-            text-zinc-400
-            transition-all duration-200
-            hover:border-amber-400/30
-            hover:text-amber-300
-          "
-        >
-          <BellIcon className="h-[18px] w-[18px]" />
-          <span
+        {/* Search */}
+        <div className="relative flex items-center">
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-3.5 h-4 w-4 text-amber-400/60" />
+          <input
+            type="text"
+            placeholder={
+              isAdmin
+                ? "Buscar pedidos, usuarios…"
+                : "Buscar hamburguesas…"
+            }
             className="
-              absolute right-2 top-2
-              h-1.5 w-1.5 rounded-full
-              bg-amber-400
-              ring-[1.5px] ring-[#0d1b14]
+              h-10 w-[240px] rounded-xl border border-amber-900/30
+              bg-gradient-to-r from-amber-950/20 to-amber-900/10 pl-10 pr-4
+              text-[13px] text-white placeholder:text-amber-400/50
+              outline-none transition-all duration-300
+              focus:border-amber-400/50 focus:bg-amber-950/30 focus:w-[280px] focus:shadow-lg focus:shadow-amber-500/10
             "
           />
+        </div>
+
+        <div className="h-6 w-px bg-gradient-to-b from-transparent via-amber-900/30 to-transparent" />
+
+        {/* Bell */}
+        <button className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-amber-900/30 bg-gradient-to-br from-amber-950/20 to-amber-900/10 text-zinc-400 transition-all duration-300 hover:border-amber-400/40 hover:text-amber-300 hover:shadow-lg hover:shadow-amber-500/10">
+          <BellIcon className="h-[18px] w-[18px]" />
+          <span className="absolute right-[10px] top-[10px] h-2 w-2 rounded-full bg-amber-400 ring-2 ring-[#0d1b14] animate-pulse shadow-lg shadow-amber-500/50" />
         </button>
 
-        {/* DIVIDER */}
-        <div className="h-6 w-px bg-[#1a3022]" />
+        <div className="h-6 w-px bg-gradient-to-b from-transparent via-amber-900/30 to-transparent" />
 
-        {/* PROFILE */}
-        <div
-          className="
-            hidden md:flex items-center gap-2.5
-            cursor-pointer
-            group
-          "
-        >
-          {/* Avatar */}
-          <div
-            className="
-              flex h-8 w-8 items-center justify-center
-              rounded-full
-              bg-amber-400
-              text-[12px] font-bold text-[#0d1b14]
-              ring-2 ring-amber-400/20
-              transition-all duration-200
-              group-hover:ring-amber-400/50
-            "
-          >
-            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+        {/* User pill */}
+        <div className="flex cursor-pointer items-center gap-3 rounded-2xl border border-amber-900/30 bg-gradient-to-br from-amber-950/20 to-amber-900/10 px-4 py-2 transition-all duration-300 hover:border-amber-400/40 hover:bg-gradient-to-br hover:from-amber-950/30 hover:to-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 group">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-[11px] font-bold text-[#0d1b14] ring-2 ring-amber-400/30 shadow-lg shadow-amber-500/30 transition-all duration-300 group-hover:ring-amber-400/60 group-hover:scale-105">
+            {initials}
           </div>
-
           <div className="leading-tight">
             <p className="text-[13px] font-semibold text-white">
-              {isAdmin
-                ? user?.name || "Administrador"
-                : user?.username || user?.name || "Cliente"}
+              {user?.name || user?.username || (isAdmin ? "Administrador" : "Cliente")}
             </p>
-            {isAdmin && (
-              <p className="text-[11px] text-zinc-500">
-                Administrador
-              </p>
-            )}
+            <p className="text-[11px] text-amber-400/70 font-medium">
+              {isAdmin ? "Administrador" : "Cliente"}
+            </p>
           </div>
+          <ChevronDownIcon className="h-4 w-4 text-amber-400/60 transition-transform duration-300 group-hover:translate-y-0.5 group-hover:text-amber-300" />
+        </div>
 
-          <ChevronDownIcon className="h-3.5 w-3.5 text-zinc-500 transition-transform duration-200 group-hover:translate-y-0.5" />
+      </div>
+
+      {/* ── Mobile right section ── */}
+      <div className="flex items-center gap-3 lg:hidden">
+        <button className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-amber-900/30 bg-gradient-to-br from-amber-950/20 to-amber-900/10 text-zinc-400">
+          <BellIcon className="h-[18px] w-[18px]" />
+          <span className="absolute right-[10px] top-[10px] h-2 w-2 rounded-full bg-amber-400 ring-2 ring-[#0d1b14] animate-pulse" />
+        </button>
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-[12px] font-bold text-[#0d1b14] shadow-lg shadow-amber-500/30">
+          {initials}
         </div>
       </div>
+
     </header>
   );
 };
