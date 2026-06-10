@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
+import ConfirmDialog from "../../../shared/components/ConfirmDialog.jsx";
 
 const EMPTY_FORM = {
   name: "",
@@ -21,8 +22,8 @@ export const UsersPage = () => {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
   const [search, setSearch] = useState("");
+  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, userId: null, userName: "" });
 
   const gold = "#B8860B";
   const goldLight = "#C9972A";
@@ -128,15 +129,19 @@ export const UsersPage = () => {
         DELETE
   ========================= */
   const handleDelete = async (id) => {
-    const confirmDelete = confirm(
-      "¿Seguro que deseas eliminar este usuario?"
-    );
+    const user = users.find(u => u._id === id);
+    setDeleteDialog({
+      isOpen: true,
+      userId: id,
+      userName: user?.name || "este usuario"
+    });
+  };
 
-    if (!confirmDelete) return;
-
+  const confirmDelete = async () => {
     try {
-      await axiosAdmin.delete(`/users/${id}`);
+      await axiosAdmin.delete(`/users/${deleteDialog.userId}`);
       fetchAll();
+      setDeleteDialog({ isOpen: false, userId: null, userName: "" });
     } catch (err) {
       console.log(err);
     }
@@ -480,6 +485,19 @@ export const UsersPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, userId: null, userName: "" })}
+        onConfirm={confirmDelete}
+        title="Eliminar usuario"
+        message={`¿Estás seguro de que deseas eliminar al usuario "${deleteDialog.userName}"? Esta acción se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
+
     </div>
   );
 };
