@@ -17,7 +17,7 @@ export const createTable = async (req, res) => {
 
 export const getTables = async (req, res) => {
     try {
-        const tables = await Table.find().populate({
+        const tables = await Table.find({ isDeleted: false }).populate({
             path: "restaurant",
             match: { isDeleted: false }
         });
@@ -29,7 +29,7 @@ export const getTables = async (req, res) => {
 
 export const getTableById = async (req, res) => {
     try {
-        const table = await Table.findById(req.params.id).populate("restaurant");
+        const table = await Table.findOne({ _id: req.params.id, isDeleted: false }).populate("restaurant");
         if (!table) {
             return res.status(404).json({ message: "Mesa no encontrada" });
         }
@@ -41,8 +41,8 @@ export const getTableById = async (req, res) => {
 
 export const updateTable = async (req, res) => {
     try {
-        const table = await Table.findByIdAndUpdate(
-            req.params.id,
+        const table = await Table.findOneAndUpdate(
+            { _id: req.params.id, isDeleted: false },
             req.body,
             { new: true, runValidators: true }
         );
@@ -57,7 +57,11 @@ export const updateTable = async (req, res) => {
 
 export const deleteTable = async (req, res) => {
     try {
-        const table = await Table.findByIdAndDelete(req.params.id);
+        const table = await Table.findOneAndUpdate(
+            { _id: req.params.id, isDeleted: false },
+            { isDeleted: true },
+            { new: true }
+        );
         if (!table) {
             return res.status(404).json({ message: "Mesa no encontrada" });
         }
