@@ -21,6 +21,18 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Role",
         required: true
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    resetPasswordToken: {
+        type: String,
+        default: undefined
+    },
+    resetPasswordExpiry: {
+        type: Date,
+        default: undefined
     }
 }, { timestamps: true });
 
