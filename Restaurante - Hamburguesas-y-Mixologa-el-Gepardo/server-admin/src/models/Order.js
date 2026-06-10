@@ -34,6 +34,10 @@ const orderSchema = new mongoose.Schema(
             enum: ["pendiente", "preparacion", "entregado"],
             default: "pendiente",
         },
+        isDeleted: {
+            type: Boolean,
+            default: false
+        }
     },
     { timestamps: true },
 );
