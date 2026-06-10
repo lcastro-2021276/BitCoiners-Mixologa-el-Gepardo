@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
 import { useAuthStore } from "../store/authStore.js";
+import ConfirmDialog from "../../../shared/components/ConfirmDialog.jsx";
 
 const EMPTY_FORM = {
   number: "",
@@ -20,6 +21,7 @@ export const TablesPage = () => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, tableId: null, tableNumber: "" });
 
   const gold = "#B8860B";
   const goldLight = "#C9972A";
@@ -104,9 +106,22 @@ export const TablesPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("¿Eliminar esta mesa?")) return;
-    await axiosAdmin.delete(`/tables/${id}`);
-    fetchAll();
+    const table = tables.find(t => t._id === id);
+    setDeleteDialog({
+      isOpen: true,
+      tableId: id,
+      tableNumber: table?.number || "esta mesa"
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axiosAdmin.delete(`/tables/${deleteDialog.tableId}`);
+      fetchAll();
+      setDeleteDialog({ isOpen: false, tableId: null, tableNumber: "" });
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+    }
   };
 
   const toggleStatus = async (t) => {
@@ -344,6 +359,18 @@ export const TablesPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, tableId: null, tableNumber: "" })}
+        onConfirm={confirmDelete}
+        title="Eliminar mesa"
+        message={`¿Estás seguro de que deseas eliminar la mesa #${deleteDialog.tableNumber}? Esta acción se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+      />
 
     </div>
   );
