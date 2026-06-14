@@ -3,6 +3,7 @@ import { axiosAdmin } from "../../../shared/apis/api.js";
 import { useAuthStore } from "../store/authStore.js";
 import { uploadToCloudinary } from "../../../shared/hooks/useCloudinaryUpload.js";
 import ConfirmDialog from "../../../shared/components/ConfirmDialog.jsx";
+import { isAvailable, getAvailabilityLabel, getAvailabilityColors } from "../../../shared/utils/availabilityHelper.js";
 
 const EMPTY_FORM = {
   name: "",
@@ -140,11 +141,21 @@ export const RestaurantsPage = () => {
 
   const confirmDelete = async () => {
     try {
-      await axiosAdmin.delete(`/restaurants/${deleteDialog.restaurantId}`);
+      // Soft delete: set isDeleted to true instead of physical delete
+      await axiosAdmin.put(`/restaurants/${deleteDialog.restaurantId}`, { isDeleted: true });
       fetchRestaurants();
       setDeleteDialog({ isOpen: false, restaurantId: null, restaurantName: "" });
     } catch (err) {
       console.error("Error al eliminar:", err);
+    }
+  };
+
+  const handleToggleAvailability = async (id, currentStatus) => {
+    try {
+      await axiosAdmin.put(`/restaurants/${id}`, { isDeleted: !currentStatus });
+      fetchRestaurants();
+    } catch (err) {
+      console.error("Error al cambiar disponibilidad:", err);
     }
   };
 
@@ -157,12 +168,12 @@ export const RestaurantsPage = () => {
         UI
   ========================= */
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "26px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "26px", backgroundColor: "#ffffff", padding: "20px", borderRadius: "8px", minHeight: "100vh" }}>
 
       {/* HEADER */}
       <section
         style={{
-          background: "#0e1e15",
+          background: "linear-gradient(135deg, #1a1a1a, #2d2d2d)",
           borderRadius: "16px",
           padding: "40px",
           color: "#fff",
@@ -238,20 +249,36 @@ export const RestaurantsPage = () => {
             gap: "14px",
           }}
         >
-          {restaurants.map((r) => (
-            <div key={r._id} style={restaurantCard}>
+          {restaurants.map((r) => {
+            const available = isAvailable(r);
+            const availabilityLabel = getAvailabilityLabel(r);
+            const colors = getAvailabilityColors(r);
+            
+            return (
+            <div key={r._id} style={{
+              ...restaurantCard,
+              ...(
+                !available && { opacity: 0.6, border: "2px solid #ccc" }
+              )
+            }}>
 
               {/* IMAGEN */}
               {r.imageUrl ? (
                 <img
                   src={r.imageUrl}
                   alt={r.name}
-                  style={{ width: "100%", height: "180px", objectFit: "cover", display: "block" }}
+                  style={{ 
+                    width: "100%", 
+                    height: "180px", 
+                    objectFit: "cover", 
+                    display: "block",
+                    filter: !available ? "grayscale(100%)" : "none"
+                  }}
                 />
               ) : (
                 <div style={{
                   width: "100%", height: "100px",
-                  background: "linear-gradient(135deg, #0e1e15, #1a3a25)",
+                  background: "linear-gradient(135deg, #e0e0e0, #f5f5f5)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 36
                 }}>🏪</div>
@@ -259,11 +286,23 @@ export const RestaurantsPage = () => {
 
               {/* TOP */}
               <div style={restaurantTop}>
-                <span style={tag}>Restaurante</span>
-                <h3 style={{ color: "#fff", fontWeight: 300, marginTop: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={tag}>Restaurante</span>
+                  <div style={{
+                    padding: "4px 10px",
+                    borderRadius: "999px",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    background: available ? "#e7f7ee" : "#fee2e2",
+                    color: available ? "#1b7a4a" : "#dc2626"
+                  }}>
+                    {availabilityLabel}
+                  </div>
+                </div>
+                <h3 style={{ color: "#1a1a1a", fontWeight: 300, marginTop: 10 }}>
                   {r.name}
                 </h3>
-                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px" }}>
+                <p style={{ color: "rgba(0,0,0,0.6)", fontSize: "12px" }}>
                   {r.address || "Sin dirección"}
                 </p>
               </div>
@@ -282,6 +321,13 @@ export const RestaurantsPage = () => {
                     Editar
                   </button>
 
+                  <button 
+                    onClick={() => handleToggleAvailability(r._id, available)} 
+                    style={available ? btnDisable : btnEnable}
+                  >
+                    {available ? "Deshabilitar" : "Habilitar"}
+                  </button>
+
                   <button onClick={() => handleDelete(r._id)} style={btnDelete}>
                     Eliminar
                   </button>
@@ -290,7 +336,8 @@ export const RestaurantsPage = () => {
 
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -384,7 +431,7 @@ export const RestaurantsPage = () => {
         onClose={() => setDeleteDialog({ isOpen: false, restaurantId: null, restaurantName: "" })}
         onConfirm={confirmDelete}
         title="Eliminar restaurante"
-        message={`¿Estás seguro de que deseas eliminar el restaurante "${deleteDialog.restaurantName}"? Esta acción se puede deshacer.`}
+        message={`¿Estás seguro de que deseas eliminar el restaurante "${deleteDialog.restaurantName}"? Esta acción lo marcará como no disponible, pero no se eliminará físicamente.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         type="danger"
@@ -434,26 +481,27 @@ const dot = {
 };
 
 const restaurantCard = {
-  background: "#0e1e15",
+  background: "#f8f8f8",
   borderRadius: "16px",
   overflow: "hidden",
+  border: "1px solid #e0e0e0",
 };
 
 const restaurantTop = {
   padding: "16px",
-  background: "linear-gradient(135deg, #0e1e15, #152a21)",
+  background: "#f0f0f0",
 };
 
 const tag = {
   fontSize: "10px",
-  color: goldLight,
+  color: "#B8860B",
   letterSpacing: "0.15em",
   textTransform: "uppercase",
 };
 
 const infoText = {
   fontSize: "12px",
-  color: "#444",
+  color: "rgba(255,255,255,0.8)",
 };
 
 const overlay = {
@@ -505,6 +553,24 @@ const btnDelete = {
   border: "1px solid #e57373",
   background: "#ffebee",
   color: "#d32f2f",
+};
+
+const btnDisable = {
+  flex: 1,
+  padding: "8px",
+  borderRadius: "8px",
+  border: "1px solid #d32f2f",
+  background: "#ffebee",
+  color: "#d32f2f",
+};
+
+const btnEnable = {
+  flex: 1,
+  padding: "8px",
+  borderRadius: "8px",
+  border: "1px solid #1b7a4a",
+  background: "#e7f7ee",
+  color: "#1b7a4a",
 };
 
 const btnSecondary = {

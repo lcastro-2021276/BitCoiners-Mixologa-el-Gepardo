@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { axiosAdmin } from "../../../shared/apis/api.js";
-import { useAuthStore } from "../store/authStore.js";
+import { useAuthStore } from "../store/authStore";
 import ConfirmDialog from "../../../shared/components/ConfirmDialog.jsx";
+import { isAvailable, getAvailabilityLabel, getAvailabilityColors } from "../../../shared/utils/availabilityHelper.js";
 
 const EMPTY_FORM = {
   number: "",
@@ -23,10 +24,7 @@ export const TablesPage = () => {
   const [error, setError] = useState("");
   const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, tableId: null, tableNumber: "" });
 
-  const gold = "#B8860B";
-  const goldLight = "#C9972A";
-  const serif = "'Cormorant Garamond', Georgia, serif";
-
+  
   const { user } = useAuthStore();
   const isClient = user?.role === "Cliente" || user?.role === "CLIENT";
 
@@ -50,7 +48,6 @@ export const TablesPage = () => {
     fetchAll();
   }, []);
 
-  
   const openCreate = () => {
     setEditing(null);
     setForm({ ...EMPTY_FORM, restaurant: restaurants[0]?._id || "" });
@@ -116,7 +113,7 @@ export const TablesPage = () => {
 
   const confirmDelete = async () => {
     try {
-      await axiosAdmin.delete(`/tables/${deleteDialog.tableId}`);
+      await axiosAdmin.put(`/tables/${deleteDialog.tableId}`, { isDeleted: true });
       fetchAll();
       setDeleteDialog({ isOpen: false, tableId: null, tableNumber: "" });
     } catch (error) {
@@ -124,25 +121,23 @@ export const TablesPage = () => {
     }
   };
 
+  const handleToggleAvailability = async (id, currentStatus) => {
+    try {
+      await axiosAdmin.put(`/tables/${id}`, { isDeleted: !currentStatus });
+      fetchAll();
+    } catch (err) {
+      console.error("Error al cambiar disponibilidad:", err);
+    }
+  };
+
   const toggleStatus = async (t) => {
-    const newStatus =
-      t.status === "disponible" ? "ocupada" : "disponible";
-
-    await axiosAdmin.put(`/tables/${t._id}`, {
-      status: newStatus,
-    });
-
+    const newStatus = t.status === "disponible" ? "ocupada" : "disponible";
+    await axiosAdmin.put(`/tables/${t._id}`, { status: newStatus });
     fetchAll();
   };
 
-  const disponibles = tables.filter(
-    (t) => t.status === "disponible"
-  ).length;
-
-  const ocupadas = tables.filter(
-    (t) => t.status === "ocupada"
-  ).length;
-
+  const disponibles = tables.filter((t) => t.status === "disponible").length;
+  const ocupadas = tables.filter((t) => t.status === "ocupada").length;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "26px" }}>
@@ -161,9 +156,9 @@ export const TablesPage = () => {
         </p>
 
         {!isClient && (
-        <button onClick={openCreate} style={btnPrimary(gold, goldLight)}>
-          + Nueva mesa
-        </button>
+          <button onClick={openCreate} style={btnPrimary(gold, goldLight)}>
+            + Nueva mesa
+          </button>
         )}
       </section>
 
@@ -192,23 +187,30 @@ export const TablesPage = () => {
       {/* LIST */}
       {loading ? (
         <div style={center}>
-          <div style={spinner(gold)} />
+          <div style={spinnerStyle} />
         </div>
       ) : (
         <div style={gridTables}>
           {tables.map((t) => {
             const isFree = t.status === "disponible";
+            const available = isAvailable(t);
+            const availabilityLabel = getAvailabilityLabel(t);
 
             return (
-              <div key={t._id} style={tableCard}>
+              <div key={t._id} style={{
+                ...tableCard,
+                ...(available ? {} : { opacity: 0.6, border: "2px solid var(--color-unavailable-border)" })
+              }}>
 
                 {/* TOP */}
                 <div
                   style={{
                     ...tableTop,
-                    background: isFree
-                      ? "linear-gradient(135deg,#065f46,#10b981)"
-                      : "linear-gradient(135deg,#7f1d1d,#ef4444)",
+                    background: !available
+                      ? "var(--color-unavailable-bg)"
+                      : isFree
+                        ? "linear-gradient(135deg,#065f46,#10b981)"
+                        : "linear-gradient(135deg,#7f1d1d,#ef4444)",
                   }}
                 >
                   <div>
@@ -216,9 +218,21 @@ export const TablesPage = () => {
                     <h2 style={number}>#{t.number}</h2>
                   </div>
 
-                  <span style={badge(isFree)}>
-                    {isFree ? "Disponible" : "Ocupada"}
-                  </span>
+                  {!available ? (
+                    <span style={{
+                      padding: "6px 10px",
+                      borderRadius: "999px",
+                      background: "var(--color-unavailable-badge)",
+                      color: "#fff",
+                      fontSize: "12px",
+                    }}>
+                      Fuera de servicio
+                    </span>
+                  ) : (
+                    <span style={badge(isFree)}>
+                      {isFree ? "Disponible" : "Ocupada"}
+                    </span>
+                  )}
                 </div>
 
                 {/* BODY */}
@@ -231,12 +245,7 @@ export const TablesPage = () => {
 
                   <div style={infoBox}>
                     <p style={mini2}>Estado</p>
-                    <p
-                      style={{
-                        ...infoValue,
-                        color: isFree ? "#10b981" : "#ef4444",
-                      }}
-                    >
+                    <p style={{ ...infoValue, color: isFree ? "#10b981" : "#ef4444" }}>
                       {isFree ? "Libre" : "En uso"}
                     </p>
                   </div>
@@ -251,31 +260,31 @@ export const TablesPage = () => {
                   {/* ACTIONS */}
                   <div style={actions}>
 
-                    {!isClient && (
-                    <button
-                      onClick={() => toggleStatus(t)}
-                      style={toggleBtn(isFree)}
-                    >
-                      {isFree ? "Ocupar" : "Liberar"}
-                    </button>
+                    {!isClient && available && (
+                      <button onClick={() => toggleStatus(t)} style={toggleBtn(isFree)}>
+                        {isFree ? "Ocupar" : "Liberar"}
+                      </button>
                     )}
 
                     {!isClient && (
-                    <button
-                      onClick={() => openEdit(t)}
-                      style={iconBtn("#f59e0b")}
-                    >
-                      ✏️
-                    </button>
+                      <button onClick={() => openEdit(t)} style={iconBtn("#f59e0b")}>
+                        ✏️
+                      </button>
                     )}
 
                     {!isClient && (
-                    <button
-                      onClick={() => handleDelete(t._id)}
-                      style={iconBtn("#ef4444")}
-                    >
-                      🗑️
-                    </button>
+                      <button
+                        onClick={() => handleToggleAvailability(t._id, available)}
+                        style={available ? iconBtn("#ef4444") : iconBtn("#10b981")}
+                      >
+                        {available ? "🚫" : "✅"}
+                      </button>
+                    )}
+
+                    {!isClient && (
+                      <button onClick={() => handleDelete(t._id)} style={iconBtn("#ef4444")}>
+                        🗑️
+                      </button>
                     )}
 
                   </div>
@@ -301,26 +310,20 @@ export const TablesPage = () => {
               <input
                 placeholder="Número"
                 value={form.number}
-                onChange={(e) =>
-                  setForm({ ...form, number: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, number: e.target.value })}
                 style={input}
               />
 
               <input
                 placeholder="Capacidad"
                 value={form.capacity}
-                onChange={(e) =>
-                  setForm({ ...form, capacity: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, capacity: e.target.value })}
                 style={input}
               />
 
               <select
                 value={form.status}
-                onChange={(e) =>
-                  setForm({ ...form, status: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
                 style={input}
               >
                 <option value="disponible">Disponible</option>
@@ -329,9 +332,7 @@ export const TablesPage = () => {
 
               <select
                 value={form.restaurant}
-                onChange={(e) =>
-                  setForm({ ...form, restaurant: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, restaurant: e.target.value })}
                 style={input}
               >
                 <option value="">Restaurante</option>
@@ -366,7 +367,7 @@ export const TablesPage = () => {
         onClose={() => setDeleteDialog({ isOpen: false, tableId: null, tableNumber: "" })}
         onConfirm={confirmDelete}
         title="Eliminar mesa"
-        message={`¿Estás seguro de que deseas eliminar la mesa #${deleteDialog.tableNumber}? Esta acción se puede deshacer.`}
+        message={`¿Estás seguro de que deseas eliminar la mesa #${deleteDialog.tableNumber}? Esta acción la marcará como fuera de servicio, pero no se eliminará físicamente.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         type="danger"
@@ -378,12 +379,11 @@ export const TablesPage = () => {
 
 
 
+
 const gold = "#B8860B";
 const goldLight = "#C9972A";
-
 const serif = "'Cormorant Garamond', Georgia, serif";
 
-/* layout */
 const hero = {
   background: "#0e1e15",
   padding: "40px",
@@ -456,7 +456,6 @@ const infoBoxFull = {
 };
 
 const mini2 = { fontSize: "10px", color: "#999" };
-
 const infoValue = { fontSize: "12px", fontWeight: 600 };
 
 const actions = { display: "flex", gap: "8px" };
@@ -468,6 +467,7 @@ const toggleBtn = (isFree) => ({
   background: isFree ? "#ef4444" : "#10b981",
   color: "#fff",
   border: "none",
+  cursor: "pointer",
 });
 
 const iconBtn = (color) => ({
@@ -475,6 +475,7 @@ const iconBtn = (color) => ({
   borderRadius: "10px",
   border: `1px solid ${color}`,
   background: `${color}15`,
+  cursor: "pointer",
 });
 
 const badge = (isFree) => ({
@@ -492,6 +493,7 @@ const overlay = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
+  zIndex: 1000,
 };
 
 const modal = {
@@ -521,6 +523,7 @@ const btnSecondary = {
   border: "1px solid rgba(255,255,255,0.12)",
   background: "transparent",
   color: "rgba(255,255,255,0.7)",
+  cursor: "pointer",
 };
 
 const btnPrimary = (g, gl) => ({
@@ -530,6 +533,7 @@ const btnPrimary = (g, gl) => ({
   background: `linear-gradient(135deg,${g},${gl})`,
   color: "#fff",
   border: "none",
+  cursor: "pointer",
 });
 
 const center = {
@@ -538,11 +542,13 @@ const center = {
   padding: "60px",
 };
 
-const spinner = (gold) => ({
+// ✅ FIX: Renombrado a "spinnerStyle" para evitar conflicto de nombre
+// con cualquier variable local dentro del componente.
+const spinnerStyle = {
   width: "34px",
   height: "34px",
   border: "3px solid #eee",
   borderTop: `3px solid ${gold}`,
   borderRadius: "50%",
   animation: "spin 1s linear infinite",
-});
+};

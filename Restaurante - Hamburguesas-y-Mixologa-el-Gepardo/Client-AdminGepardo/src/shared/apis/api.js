@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '../../features/auth/store/authStore.js';
+import { useAuthStore } from '../../features/Auth/store/authStore.js';
 
 const axiosAuth = axios.create({
   baseURL: import.meta.env.VITE_AUTH_URL,
@@ -15,7 +15,7 @@ const axiosAdmin = axios.create({
 
 
 const attachToken = (config) => {
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().token || localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 };
@@ -66,7 +66,8 @@ const handleRefreshToken = async (_error) => {
   _original._retry = true;
   _isRefreshing = true;
 
-  const refreshToken = useAuthStore.getState().refreshToken;
+  
+  const refreshToken = useAuthStore.getState().refreshToken || localStorage.getItem('refreshToken');
   if (!refreshToken) {
     useAuthStore.getState().logout();
     _isRefreshing = false;
@@ -78,12 +79,16 @@ const handleRefreshToken = async (_error) => {
     const { accessToken, refreshToken: newRefreshToken, expiresIn, userDetails } = response.data;
 
     useAuthStore.setState({
-        token: accessToken,
-        refreshToken: newRefreshToken,
-        expiresAt: expiresIn,
-        user: userDetails || useAuthStore.getState().user,
-        isAuthenticated: true,
+      token: accessToken,
+      refreshToken: newRefreshToken,
+      expiresAt: expiresIn,
+      user: userDetails || useAuthStore.getState().user,
+      isAuthenticated: true,
     });
+
+    
+    localStorage.setItem('token', accessToken);
+    if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
 
     _processQueue(null, accessToken);
     _original.headers['Authorization'] = 'Bearer ' + accessToken;
@@ -97,10 +102,8 @@ const handleRefreshToken = async (_error) => {
   }
 };
 
-
 axiosAuth.interceptors.response.use((res) => res, handleRefreshToken);
 axiosAdmin.interceptors.response.use((res) => res, handleRefreshToken);
-
 
 export { axiosAuth, axiosAdmin };
 export { handleRefreshToken };
