@@ -2,21 +2,47 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
+import Role from "../models/Role.js";
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const body = req.body || {};
+    const name = body.name || body.fullName || body.firstName || '';
+    const surname = body.surname || body.lastName || '';
+    const username = body.username || body.user || '';
+    const email = body.email || '';
+    const password = body.password || '';
+    const phone = body.phone || '';
+
+    if (!name || !email || !password || !username) {
+      return res.status(400).json({ message: "Faltan campos requeridos" });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "El usuario ya existe" });
     }
 
+    // Obtener el rol de "Cliente" por defecto
+    let roleId;
+    const clientRole = await Role.findOne({ name: "Cliente" });
+    if (clientRole) {
+      roleId = clientRole._id;
+    } else {
+      // Si no existe el rol, crear uno por defecto
+      const newRole = new Role({ name: "Cliente" });
+      await newRole.save();
+      roleId = newRole._id;
+    }
+
     const newUser = new User({
       name,
+      surname: surname || '',
+      username,
       email,
       password,  // el modelo User tiene pre('save') que hashea automáticamente
-      role
+      phone: phone || '',
+      role: roleId
     });
 
     await newUser.save();
@@ -26,7 +52,8 @@ export const register = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error en registro:", error);
+    res.status(500).json({ message: error.message || "Error al registrar usuario" });
   }
 };
 
@@ -34,7 +61,7 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate('role');
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
@@ -44,18 +71,35 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET || "restaurante_secreto",
       { expiresIn: "2h" }
     );
 
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.REFRESH_TOKEN_SECRET || "restaurante_refresh_secreto",
+      { expiresIn: "7d" }
+    );
+
     res.json({
       message: "Login exitoso",
-      token
+      accessToken,
+      refreshToken,
+      userDetails: {
+        id: user._id,
+        name: user.name,
+        surname: user.surname,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
     });
 
   } catch (error) {
+    console.error("Error en login:", error);
     res.status(500).json({ message: error.message });
   }
 };
