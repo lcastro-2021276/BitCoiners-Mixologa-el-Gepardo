@@ -3,6 +3,7 @@ import { axiosAdmin } from "../../../shared/apis/api.js";
 import { useAuthStore } from "../store/authStore.js";
 import { uploadToCloudinary } from "../../../shared/hooks/useCloudinaryUpload.js";
 import ConfirmDialog from "../../../shared/components/ConfirmDialog.jsx";
+import { isAvailable, getAvailabilityLabel, getAvailabilityColors } from "../../../shared/utils/availabilityHelper.js";
 
 const EMPTY_FORM = {
   name: "",
@@ -161,11 +162,21 @@ export const MenuPage = () => {
 
   const confirmDelete = async () => {
     try {
-      await axiosAdmin.delete(`/menu-items/${deleteDialog.itemId}`);
+      // Soft delete: set available to false instead of physical delete
+      await axiosAdmin.put(`/menu-items/${deleteDialog.itemId}`, { available: false });
       fetchAll();
       setDeleteDialog({ isOpen: false, itemId: null, itemName: "" });
     } catch (error) {
       console.error("Error al eliminar:", error);
+    }
+  };
+
+  const handleToggleAvailability = async (id, currentStatus) => {
+    try {
+      await axiosAdmin.put(`/menu-items/${id}`, { available: !currentStatus });
+      fetchAll();
+    } catch (err) {
+      console.error("Error al cambiar disponibilidad:", err);
     }
   };
 
@@ -296,14 +307,19 @@ export const MenuPage = () => {
             gap: "14px",
           }}
         >
-          {filtered.map((item) => (
+          {filtered.map((item) => {
+            const available = isAvailable(item);
+            const availabilityLabel = getAvailabilityLabel(item);
+            
+            return (
             <div
               key={item._id}
               style={{
-                background: "#fff",
-                border: "1px solid #e8e4dc",
+                background: !available ? "var(--color-unavailable-bg)" : "#fff",
+                border: !available ? "2px solid var(--color-unavailable-border)" : "1px solid #e8e4dc",
                 borderRadius: "14px",
                 overflow: "hidden",
+                opacity: !available ? 0.7 : 1,
               }}
             >
               <div style={{ background: "#0e1e15", padding: "0", color: "#fff", overflow: "hidden" }}>
@@ -311,7 +327,13 @@ export const MenuPage = () => {
                   <img
                     src={item.imageUrl}
                     alt={item.name}
-                    style={{ width: "100%", height: "160px", objectFit: "cover", display: "block" }}
+                    style={{ 
+                      width: "100%", 
+                      height: "160px", 
+                      objectFit: "cover", 
+                      display: "block",
+                      filter: !available ? "grayscale(100%)" : "none"
+                    }}
                   />
                 ) : (
                   <div style={{
@@ -322,21 +344,39 @@ export const MenuPage = () => {
                   }}>🍽️</div>
                 )}
                 <div style={{ padding: "12px 14px" }}>
-                  <small style={{ color: goldLight }}>
-                    {item.category || "Sin categoría"}
-                  </small>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <small style={{ color: goldLight }}>
+                      {item.category || "Sin categoría"}
+                    </small>
+                    <div style={{
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      background: available ? "#e7f7ee" : "#fee2e2",
+                      color: available ? "#1b7a4a" : "#dc2626"
+                    }}>
+                      {availabilityLabel}
+                    </div>
+                  </div>
                   <h3 style={{ margin: "4px 0 0", fontWeight: 300 }}>{item.name}</h3>
                 </div>
               </div>
 
               <div style={{ padding: "14px" }}>
-                <p style={{ fontSize: "12px", color: "#777" }}>
+                <p style={{ fontSize: "12px", color: !available ? "var(--color-unavailable-text)" : "#777" }}>
                   {item.description || "Sin descripción"}
                 </p>
 
-                <p style={{ color: gold }}>
-                  Q{Number(item.price).toFixed(2)}
-                </p>
+                {available ? (
+                  <p style={{ color: gold }}>
+                    Q{Number(item.price).toFixed(2)}
+                  </p>
+                ) : (
+                  <p style={{ color: "var(--color-unavailable-text)", fontStyle: "italic", fontSize: "12px" }}>
+                    No disponible temporalmente
+                  </p>
+                )}
 
                 {!isClient && (
                 <div style={{ display: "flex", gap: "8px" }}>
@@ -362,6 +402,29 @@ export const MenuPage = () => {
                     }}
                   >
                     Editar
+                  </button>
+                  <button 
+                    onClick={() => handleToggleAvailability(item._id, available)}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      border: available ? "1px solid #d32f2f" : "1px solid #1b7a4a",
+                      background: available ? "transparent" : "transparent",
+                      color: available ? "#d32f2f" : "#1b7a4a",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      transition: "all 0.2s"
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.background = available ? "#d32f2f" : "#1b7a4a";
+                      e.target.style.color = "#fff";
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.background = "transparent";
+                      e.target.style.color = available ? "#d32f2f" : "#1b7a4a";
+                    }}
+                  >
+                    {available ? "Deshabilitar" : "Habilitar"}
                   </button>
                   <button 
                     onClick={() => handleDelete(item._id)}
@@ -390,7 +453,8 @@ export const MenuPage = () => {
                 )}
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 
@@ -533,7 +597,7 @@ export const MenuPage = () => {
         onClose={() => setDeleteDialog({ isOpen: false, itemId: null, itemName: "" })}
         onConfirm={confirmDelete}
         title="Eliminar item del menú"
-        message={`¿Estás seguro de que deseas eliminar "${deleteDialog.itemName}" del menú? Esta acción se puede deshacer.`}
+        message={`¿Estás seguro de que deseas eliminar "${deleteDialog.itemName}" del menú? Esta acción lo marcará como no disponible, pero no se eliminará físicamente.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
         type="danger"
