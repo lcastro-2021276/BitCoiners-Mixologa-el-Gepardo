@@ -9,27 +9,18 @@ export const useAuthStore = create((set) => ({
   isAuthenticated: false,
   loading: false,
   error: null,
+  isCheckingAuth: true,
 
   login: async (data) => {
-    set({
-      loading: true,
-      error: null,
-    });
+    set({ loading: true, error: null });
 
     try {
-
-      const res = await axiosAuth.post(
-        "/auth/login",
-        data
-      );
+      const res = await axiosAuth.post("/auth/login", data);
 
       console.log("LOGIN RESPONSE:", res.data);
 
       const responseData = res.data;
 
-      // =========================
-      // DETECTAR TOKEN
-      // =========================
       const token =
         responseData.token ||
         responseData.accessToken;
@@ -41,44 +32,18 @@ export const useAuthStore = create((set) => ({
         responseData.user ||
         responseData.userDetails;
 
-      // =========================
-      // VALIDAR TOKEN
-      // =========================
       if (!token) {
-
         toast.error("No se recibió token");
-
-        set({
-          loading: false,
-          error: "Token inválido",
-        });
-
+        set({ loading: false, error: "Token inválido" });
         return { success: false };
       }
 
-      // =========================
-      // LOCAL STORAGE
-      // =========================
-      localStorage.setItem(
-        "user",
-        JSON.stringify(user)
-      );
+      // Guardar en localStorage
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+      if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
 
-      localStorage.setItem(
-        "token",
-        token
-      );
-
-      if (refreshToken) {
-        localStorage.setItem(
-          "refreshToken",
-          refreshToken
-        );
-      }
-
-      // =========================
-      // STORE
-      // =========================
+      // Hidratar el store inmediatamente
       set({
         user,
         token,
@@ -90,51 +55,42 @@ export const useAuthStore = create((set) => ({
 
       toast.success("Login exitoso");
 
-      return {
-        success: true,
-        user,
-      };
+      return { success: true, user };
 
     } catch (err) {
-
       console.log(err);
 
       const message =
-        err.response?.data?.message ||
-        "Error al iniciar sesión";
+        err.response?.data?.message || "Error al iniciar sesión";
 
-      set({
-        loading: false,
-        error: message,
-      });
-
+      set({ loading: false, error: message });
       toast.error(message);
 
-      return {
-        success: false,
-      };
+      return { success: false };
     }
   },
 
+  
   checkAuth: () => {
-
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     const refreshToken = localStorage.getItem("refreshToken");
 
     if (user && token) {
-
+      
       set({
         user: JSON.parse(user),
         token,
         refreshToken,
         isAuthenticated: true,
+        isCheckingAuth: false, 
       });
+    } else {
+      set({ isCheckingAuth: false });
     }
   },
 
   logout: () => {
-
     localStorage.clear();
 
     set({
