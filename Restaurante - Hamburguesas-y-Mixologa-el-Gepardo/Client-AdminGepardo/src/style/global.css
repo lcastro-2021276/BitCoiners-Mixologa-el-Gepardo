@@ -18,6 +18,11 @@
   --color-warning:      #fbbf24;
   --color-error:        #ef4444;
   --color-info:         #38bdf8;
+
+  --color-unavailable-bg:      #1A1A1A;
+  --color-unavailable-border:  #991B1B;
+  --color-unavailable-text:   #FF4D4D;
+  --color-unavailable-badge:  #DC2626;
 }
 
 :root {
@@ -39,6 +44,11 @@
   --color-success:     #4ade80;
   --color-warning:     #fbbf24;
   --color-info:        #38bdf8;
+
+  --color-unavailable-bg:      #1A1A1A;
+  --color-unavailable-border:  #991B1B;
+  --color-unavailable-text:   #FF4D4D;
+  --color-unavailable-badge:  #DC2626;
 
   --border-color:  rgba(236, 214, 225, 0.15);
   --shadow-sm:     0 2px 6px rgba(0, 0, 0, 0.2);
