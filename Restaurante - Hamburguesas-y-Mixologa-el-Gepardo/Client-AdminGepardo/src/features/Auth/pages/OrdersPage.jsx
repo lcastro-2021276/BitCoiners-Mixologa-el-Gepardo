@@ -74,6 +74,57 @@ const KpiCard = ({ label, value, accent }) => (
   </div>
 );
 
+// ─── ADMIN STATUS SELECTOR ────────────────────────────────────────────────────
+// Inline dropdown that lets the admin move an order through any status directly.
+const AdminStatusSelector = ({ currentStatus, onSelect }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const s = STATUS[currentStatus] ?? STATUS.pendiente;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-bold tracking-wide uppercase transition ${s.tw} hover:opacity-80`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${s.dot} animate-pulse`} />
+        {s.label}
+        <svg className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-20 mt-1.5 w-44 overflow-hidden rounded-xl border border-[#C9972A]/20 bg-[#0d1b14] shadow-xl shadow-black/40">
+          {Object.entries(STATUS).map(([key, st]) => (
+            <button
+              key={key}
+              onClick={() => { onSelect(key); setOpen(false); }}
+              className={`flex w-full items-center gap-2.5 px-4 py-3 text-[11px] font-bold uppercase tracking-wide transition hover:bg-white/5 ${
+                key === currentStatus ? "opacity-40 cursor-default" : ""
+              }`}
+              disabled={key === currentStatus}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${st.dot}`} />
+              <span style={{ color: key === "pendiente" ? "#C9972A" : key === "preparacion" ? "#4A90E2" : "#2ecc71" }}>
+                {st.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const AdminView = ({ orders, onUpdateStatus }) => {
   if (orders.length === 0) return (
     <div className="flex flex-col items-center justify-center gap-6 rounded-2xl border border-dashed border-[#C9972A]/20 bg-gradient-to-br from-[#0f2018] to-[#0a1510] py-32 text-center">
@@ -112,9 +163,15 @@ const AdminView = ({ orders, onUpdateStatus }) => {
                       <span className="text-[15px] font-bold text-white">#{order.table?.number ?? "—"}</span>
                     </div>
                   </td>
+
+                  {/* ── Status column: now uses the inline dropdown selector ── */}
                   <td className="px-7 py-6">
-                    <StatusBadge status={order.status} />
+                    <AdminStatusSelector
+                      currentStatus={order.status}
+                      onSelect={(newStatus) => onUpdateStatus(order._id, newStatus)}
+                    />
                   </td>
+
                   <td className="px-7 py-6 max-w-[220px]">
                     <p className="truncate text-[13px] text-zinc-400">
                       {(order.items ?? []).map((item) => item.menuItem?.name ?? item.name ?? "Item").join(", ")}
@@ -126,6 +183,8 @@ const AdminView = ({ orders, onUpdateStatus }) => {
                   <td className="px-7 py-6">
                     <span className="text-[13px] text-zinc-500">{order.createdAt ? timeAgo(order.createdAt) : ""}</span>
                   </td>
+
+                  {/* ── Actions column: kept Preparar / Entregar buttons + reset ── */}
                   <td className="px-7 py-6">
                     <div className="flex items-center justify-end gap-2.5">
                       {order.status === "pendiente" && (
@@ -151,7 +210,7 @@ const AdminView = ({ orders, onUpdateStatus }) => {
                       )}
                       <button
                         onClick={() => onUpdateStatus(order._id, "pendiente")}
-                        title="Reiniciar"
+                        title="Reiniciar a pendiente"
                         className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#C9972A]/20 bg-[#C9972A]/10 text-[#C9972A] transition hover:bg-[#C9972A]/20 hover:shadow-lg hover:shadow-[#C9972A]/20"
                       >
                         <ArrowPathIcon className="h-4 w-4" />
@@ -168,6 +227,8 @@ const AdminView = ({ orders, onUpdateStatus }) => {
   );
 };
 
+// ─── CLIENT VIEW ─────────────────────────────────────────────────────────────
+// The client only sees their order status — no controls to change it.
 const ClientView = ({ order, onRefresh, refreshing }) => {
   if (!order) return (
     <div className="mx-auto max-w-lg">
@@ -193,7 +254,7 @@ const ClientView = ({ order, onRefresh, refreshing }) => {
 
   return (
     <div className="mx-auto max-w-lg">
-      <div className={`overflow-hidden rounded-2xl border border-[#C9972A]/20 bg-gradient-to-br from-[#0f2018] to-[#0a1510] shadow-2xl`}>
+      <div className="overflow-hidden rounded-2xl border border-[#C9972A]/20 bg-gradient-to-br from-[#0f2018] to-[#0a1510] shadow-2xl">
         <div className={`h-[3px] w-full ${s.bar}`} />
 
         <div className="flex items-center justify-between px-8 py-8">
@@ -207,6 +268,7 @@ const ClientView = ({ order, onRefresh, refreshing }) => {
               <p className="mt-0.5 text-[12px] text-zinc-500">{order.createdAt ? timeAgo(order.createdAt) : ""}</p>
             </div>
           </div>
+          {/* Read-only badge — client cannot interact with it */}
           <StatusBadge status={order.status} />
         </div>
 
@@ -245,6 +307,7 @@ const ClientView = ({ order, onRefresh, refreshing }) => {
     </div>
   );
 };
+// ─────────────────────────────────────────────────────────────────────────────
 
 const MenuItemCard = ({ item, qty, onAdd, onRemove }) => {
   const inCart = qty > 0;
@@ -567,10 +630,10 @@ export const OrdersPage = () => {
   };
 
   const kpis = [
-    { label: "Total pedidos",   value: orders.length,                                                     accent: "bg-gradient-to-r from-zinc-500 to-zinc-400" },
-    { label: "Pendientes",      value: orders.filter((o) => o.status === "pendiente").length,              accent: "bg-gradient-to-r from-[#C9972A] to-[#B8860B]" },
-    { label: "En preparación",  value: orders.filter((o) => o.status === "preparacion").length,            accent: "bg-gradient-to-r from-[#4A90E2] to-blue-400" },
-    { label: "Ingresos totales", value: `Q${orders.reduce((s, o) => s + (o.total ?? 0), 0).toFixed(2)}`,  accent: "bg-gradient-to-r from-emerald-500 to-emerald-400" },
+    { label: "Total pedidos",    value: orders.length,                                                     accent: "bg-gradient-to-r from-zinc-500 to-zinc-400" },
+    { label: "Pendientes",       value: orders.filter((o) => o.status === "pendiente").length,              accent: "bg-gradient-to-r from-[#C9972A] to-[#B8860B]" },
+    { label: "En preparación",   value: orders.filter((o) => o.status === "preparacion").length,            accent: "bg-gradient-to-r from-[#4A90E2] to-blue-400" },
+    { label: "Ingresos totales", value: `Q${orders.reduce((s, o) => s + (o.total ?? 0), 0).toFixed(2)}`,   accent: "bg-gradient-to-r from-emerald-500 to-emerald-400" },
   ];
 
   return (
