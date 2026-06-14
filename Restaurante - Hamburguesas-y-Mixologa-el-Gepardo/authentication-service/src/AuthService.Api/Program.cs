@@ -114,9 +114,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Frontend
+        policy.SetIsOriginAllowed(_ => true) // Permitir cualquier origen para desarrollo
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -139,8 +140,11 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         // Esto creará la base de datos y las tablas si no existen en Docker
-        context.Database.Migrate(); 
+        context.Database.Migrate();
         Console.WriteLine("✅ Base de datos sincronizada correctamente.");
+
+        // Ejecutar el DataSeeder para inicializar usuarios admin
+        await DataSeeder.SeedAsync(context);
     }
     catch (Exception ex)
     {
