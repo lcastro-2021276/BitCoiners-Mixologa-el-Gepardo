@@ -2,10 +2,15 @@ import { Router } from "express";
 import {
   register,
   getUsers,
+  getProfile,
+  updateProfile,
+  changePassword,
+  deleteAccount,
   getUserById,
   updateUser,
   deleteUser,
 } from "../controllers/user.controller.js";
+import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -114,6 +119,139 @@ router.post("/", register);
  *         description: Error interno del servidor
  */
 router.get("/", getUsers);
+
+/**
+ * @swagger
+ * /users/profile:
+ *   get:
+ *     summary: Obtener perfil del usuario autenticado
+ *     description: Retorna los datos del usuario autenticado mediante el token JWT
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil del usuario
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get("/profile", verifyToken, getProfile);
+
+/**
+ * @swagger
+ * /users/profile:
+ *   put:
+ *     summary: Actualizar perfil del usuario autenticado
+ *     description: Actualiza los datos del usuario autenticado mediante el token JWT
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               displayName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Perfil actualizado
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.put("/profile", verifyToken, updateProfile);
+
+/**
+ * @swagger
+ * /users/change-password:
+ *   put:
+ *     summary: Cambiar contraseña del usuario autenticado
+ *     description: Cambia la contraseña del usuario autenticado mediante el token JWT
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Contraseña actualizada
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.put("/change-password", verifyToken, changePassword);
+
+/**
+ * @swagger
+ * /users/account:
+ *   delete:
+ *     summary: Eliminar cuenta del usuario autenticado
+ *     description: Elimina la cuenta del usuario autenticado mediante el token JWT
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cuenta eliminada
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.delete("/account", verifyToken, deleteAccount);
 
 /**
  * @swagger
