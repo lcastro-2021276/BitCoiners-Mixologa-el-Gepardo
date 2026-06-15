@@ -1,0 +1,13 @@
+# env files
+client-restaurant/.env
+.env
+
+# dependencies
+node_modules/
+
+# build
+dist/
+build/
+
+# logs
+*.log
