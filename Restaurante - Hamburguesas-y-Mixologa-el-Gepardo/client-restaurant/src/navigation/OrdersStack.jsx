@@ -3,6 +3,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OrdersList from '../features/orders/screens/OrdersList.jsx';
 import CreateOrder from '../features/orders/screens/CreateOrder.jsx';
+import OrderDetail from '../features/orders/screens/OrderDetail.jsx';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,6 +16,7 @@ const OrdersStack = () => {
     >
       <Stack.Screen name="OrdersList" component={OrdersList} />
       <Stack.Screen name="CreateOrder" component={CreateOrder} />
+      <Stack.Screen name="OrderDetail" component={OrderDetail} />
     </Stack.Navigator>
   );
 };
