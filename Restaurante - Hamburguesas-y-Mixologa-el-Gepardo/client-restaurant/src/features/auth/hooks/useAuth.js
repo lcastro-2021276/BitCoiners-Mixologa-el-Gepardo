@@ -17,24 +17,38 @@ export const useAuth = () => {
         emailOrUsername: credentials.email || credentials.emailOrUsername,
         password: credentials.password,
       });
-      
+
       // Destructurar con defaults para flexibilidad
-      const { 
-        accessToken = response.data.token, 
+      const {
+        accessToken = response.data.token,
         token = response.data.accessToken,
-        refreshToken, 
-        userDetails 
+        refreshToken,
+        userDetails
       } = response.data;
 
       const finalToken = accessToken || token;
-      const finalUserDetails = userDetails || { email: credentials.email };
+      const email = userDetails?.email || credentials.email || credentials.emailOrUsername;
+
+      // Determinar rol según el dominio del email
+      let role = 'client';
+      if (email && email.includes('@kinal.edu.gt')) {
+        role = 'admin';
+      } else if (email && email.includes('@gmail.com')) {
+        role = 'client';
+      }
+
+      const finalUserDetails = {
+        ...userDetails,
+        email,
+        role
+      };
 
       if (!finalToken) {
         throw new Error('No se recibió token de autenticación');
       }
 
       await login(finalToken, finalUserDetails, refreshToken || null);
-      
+
       return { success: true };
     } catch (err) {
       console.error('Error en login:', err);
