@@ -7,11 +7,16 @@ import Home from '../features/home/screens/Home.jsx';
 import OrdersStack from './OrdersStack.jsx';
 import MenuStack from './MenuStack.jsx';
 import TablesStack from './TablesStack.jsx';
+import RestaurantStack from './RestaurantStack.jsx';
 import Profile from '../features/profile/screens/Profile.jsx';
+import useAuthStore from '../shared/store/authStore.js';
 
 const Tab = createBottomTabNavigator();
 
 const MainTabs = () => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin';
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -26,6 +31,8 @@ const MainTabs = () => {
             iconName = 'restaurant-menu';
           } else if (route.name === 'Mesas') {
             iconName = 'table-restaurant';
+          } else if (route.name === 'Restaurante') {
+            iconName = 'store';
           } else if (route.name === 'Perfil') {
             iconName = 'person';
           }
@@ -47,6 +54,7 @@ const MainTabs = () => {
       <Tab.Screen name="Pedidos" component={OrdersStack} />
       <Tab.Screen name="Menú" component={MenuStack} />
       <Tab.Screen name="Mesas" component={TablesStack} />
+      <Tab.Screen name="Restaurante" component={RestaurantStack} />
       <Tab.Screen name="Perfil" component={Profile} />
     </Tab.Navigator>
   );
