@@ -112,12 +112,12 @@ const TablesList = ({ navigation }) => {
       {tables.length === 0 ? (
         <EmptyState message="No hay mesas registradas" icon={<MaterialIcons name="table-restaurant" size={48} color={COLORS.secondary} />} />
       ) : (
-        <View style={styles.tablesGrid}>
+        <View style={styles.tablesList}>
           {filteredTables.map((table) => {
             const available = isAvailable(table);
             const colors = getAvailabilityColors(table);
             const availabilityLabel = getAvailabilityLabel(table);
-            
+
             return (
               <TouchableOpacity
                 key={table._id || table.id || table.number || JSON.stringify(table)}
@@ -128,37 +128,49 @@ const TablesList = ({ navigation }) => {
                 ]}
                 onPress={() => available && navigation.navigate('TableDetail', { tableId: table._id || table.id })}
                 disabled={!available}
+                activeOpacity={0.7}
               >
-                <View style={styles.tableHeader}>
-                  <MaterialIcons 
-                    name="table-restaurant" 
-                    size={40} 
-                    color={!available ? COLORS.unavailableText : COLORS.primary} 
-                  />
-                  {!available ? (
-                    <View style={[styles.statusBadge, { backgroundColor: colors.badge }]}>
-                      <Text style={styles.statusText}>Fuera de servicio</Text>
-                    </View>
-                  ) : (
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(table.status) }]}>
-                      <Text style={styles.statusText}>{getStatusLabel(table.status)}</Text>
+                <View style={styles.tableImageContainer}>
+                  <View style={[styles.tableImageGradient, !available && styles.tableImageGradientUnavailable]}>
+                    <MaterialIcons
+                      name="table-restaurant"
+                      size={48}
+                      color={!available ? COLORS.unavailableText : COLORS.primary}
+                    />
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(table.status) }]}>
+                    <Text style={styles.statusText}>{getStatusLabel(table.status)}</Text>
+                  </View>
+                </View>
+                <View style={styles.tableContent}>
+                  <Text style={[styles.tableNumber, !available && styles.tableNumberUnavailable]}>
+                    Mesa {table.number}
+                  </Text>
+                  <View style={styles.tableMeta}>
+                    <MaterialIcons name="people" size={16} color={COLORS.textLight} />
+                    <Text style={[styles.tableCapacity, !available && styles.tableCapacityUnavailable]}>
+                      {table.capacity} personas
+                    </Text>
+                  </View>
+                  {table.location && (
+                    <View style={styles.tableMeta}>
+                      <MaterialIcons name="place" size={16} color={COLORS.textLight} />
+                      <Text style={[styles.tableLocation, !available && styles.tableLocationUnavailable]}>
+                        {table.location}
+                      </Text>
                     </View>
                   )}
+                  {!available && (
+                    <Text style={styles.unavailableLabel}>{availabilityLabel}</Text>
+                  )}
                 </View>
-                <Text style={[
-                  styles.tableNumber,
-                  !available && styles.tableNumberUnavailable
-                ]}>Mesa {table.number}</Text>
-                <Text style={[
-                  styles.tableCapacity,
-                  !available && styles.tableCapacityUnavailable
-                ]}>Capacidad: {table.capacity} personas</Text>
-                {table.location && (
-                  <Text style={[
-                    styles.tableLocation,
-                    !available && styles.tableLocationUnavailable
-                  ]}>{table.location}</Text>
-                )}
+                <View style={styles.tableArrow}>
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={24}
+                    color={!available ? COLORS.unavailableText : COLORS.primary}
+                  />
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -197,52 +209,82 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     textAlign: 'center',
   },
-  tablesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  tablesList: {
     gap: SPACING.md,
   },
   tableCard: {
-    width: '48%',
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: SPACING.md,
-    ...SHADOWS.md,
-  },
-  tableHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    overflow: 'hidden',
+    ...SHADOWS.lg,
+  },
+  tableImageContainer: {
+    width: 100,
+    height: 100,
+    position: 'relative',
+  },
+  tableImageGradient: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    backgroundColor: COLORS.primary + '20',
+  },
+  tableImageGradientUnavailable: {
+    backgroundColor: '#2A2A2A',
   },
   statusBadge: {
+    position: 'absolute',
+    top: SPACING.sm,
+    right: SPACING.sm,
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   statusText: {
     fontSize: FONT_SIZE.xs,
     fontWeight: '600',
     color: COLORS.surface,
   },
+  tableContent: {
+    flex: 1,
+    padding: SPACING.md,
+    justifyContent: 'center',
+  },
   tableNumber: {
-    fontSize: FONT_SIZE.lg,
+    fontSize: FONT_SIZE.xl,
     fontWeight: '700',
     color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  tableMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
     marginBottom: SPACING.xs,
   },
   tableCapacity: {
     fontSize: FONT_SIZE.sm,
     color: COLORS.textLight,
-    marginBottom: SPACING.xs,
   },
   tableLocation: {
+    fontSize: FONT_SIZE.sm,
+    color: COLORS.textLight,
+  },
+  tableArrow: {
+    justifyContent: 'center',
+    paddingRight: SPACING.md,
+    paddingLeft: SPACING.sm,
+  },
+  unavailableLabel: {
     fontSize: FONT_SIZE.xs,
-    color: COLORS.secondary,
+    fontWeight: '600',
+    color: COLORS.error,
+    marginTop: SPACING.xs,
   },
   tableCardUnavailable: {
     backgroundColor: COLORS.unavailableBackground,
-    opacity: 0.7,
+    opacity: 0.8,
   },
   tableNumberUnavailable: {
     color: COLORS.unavailableText,
@@ -263,7 +305,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     backgroundColor: COLORS.surface,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     alignItems: 'center',
