@@ -1,18 +1,21 @@
 // c:\repo\BitCoiners-Mixologa-el-Gepardo\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\client-restaurant\src\features\menu\screens\MenuList.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
 import { Card, LoadingSpinner, EmptyState } from '../../../shared/components/common/Common.jsx';
 import { useMenu } from '../hooks/useMenu.js';
 import AppHeader from '../../../shared/components/layout/AppHeader.jsx';
 import { isAvailable, getAvailabilityColors, getAvailabilityLabel } from '../../../shared/utils/availabilityHelper.js';
+import useAuthStore from '../../../shared/store/authStore.js';
 
 const MenuList = ({ navigation }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'available', 'unavailable'
   const { fetchMenuItems, loading, error } = useMenu();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin';
 
   const loadMenu = useCallback(async () => {
     const result = await fetchMenuItems();
@@ -54,9 +57,11 @@ const MenuList = ({ navigation }) => {
       >
       <View style={styles.header}>
         <Text style={styles.title}>Menú</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('CreateMenuItem')}>
-          <MaterialIcons name="add" size={24} color={COLORS.surface} />
-        </TouchableOpacity>
+        {isAdmin && (
+          <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('CreateMenuItem')}>
+            <MaterialIcons name="add" size={24} color={COLORS.surface} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.filterContainer}>
@@ -89,13 +94,13 @@ const MenuList = ({ navigation }) => {
       {menuItems.length === 0 ? (
         <EmptyState message="No hay items en el menú" icon={<MaterialIcons name="restaurant-menu" size={48} color={COLORS.secondary} />} />
       ) : (
-        <View style={styles.menuGrid}>
+        <View style={styles.menuList}>
           {filteredItems.map((item, index) => {
             const available = isAvailable(item);
             const colors = getAvailabilityColors(item);
             const availabilityLabel = getAvailabilityLabel(item);
             const itemKey = item.id || item._id || `${item.name}-${index}`;
-            
+
             return (
               <TouchableOpacity
                 key={itemKey}
@@ -106,29 +111,27 @@ const MenuList = ({ navigation }) => {
                 ]}
                 onPress={() => available && navigation.navigate('MenuDetail', { itemId: item.id })}
                 disabled={!available}
+                activeOpacity={0.7}
               >
-                <View style={[
-                  styles.imagePlaceholder,
-                  !available && styles.imagePlaceholderUnavailable
-                ]}>
-                  <MaterialIcons 
-                    name="restaurant" 
-                    size={48} 
-                    color={!available ? COLORS.unavailableText : COLORS.secondary} 
-                  />
+                <View style={styles.menuImageContainer}>
+                  <View style={[styles.menuImageGradient, !available && styles.menuImageGradientUnavailable]}>
+                    <MaterialIcons
+                      name="restaurant"
+                      size={48}
+                      color={!available ? COLORS.unavailableText : COLORS.secondary}
+                    />
+                  </View>
+                  {!available && (
+                    <View style={[styles.unavailableBadge, { backgroundColor: colors.badge }]}>
+                      <Text style={styles.unavailableText}>{availabilityLabel}</Text>
+                    </View>
+                  )}
                 </View>
-                <View style={[
-                  styles.menuInfo,
-                  !available && styles.menuInfoUnavailable
-                ]}>
-                  <Text style={[
-                    styles.itemName,
-                    !available && styles.itemNameUnavailable
-                  ]}>{item.name}</Text>
-                  <Text style={[
-                    styles.itemDescription,
-                    !available && styles.itemDescriptionUnavailable
-                  ]} numberOfLines={2}>
+                <View style={styles.menuContent}>
+                  <Text style={[styles.itemName, !available && styles.itemNameUnavailable]}>
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.itemDescription, !available && styles.itemDescriptionUnavailable]} numberOfLines={2}>
                     {item.description || 'Sin descripción'}
                   </Text>
                   {available ? (
@@ -137,11 +140,13 @@ const MenuList = ({ navigation }) => {
                     <Text style={styles.itemPriceUnavailable}>No disponible temporalmente</Text>
                   )}
                 </View>
-                {!available && (
-                  <View style={[styles.unavailableBadge, { backgroundColor: colors.badge }]}>
-                    <Text style={styles.unavailableText}>{availabilityLabel}</Text>
-                  </View>
-                )}
+                <View style={styles.menuArrow}>
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={24}
+                    color={!available ? COLORS.unavailableText : COLORS.secondary}
+                  />
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -192,30 +197,38 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     textAlign: 'center',
   },
-  menuGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  menuList: {
     gap: SPACING.md,
   },
   menuCard: {
-    width: '48%',
+    flexDirection: 'row',
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    ...SHADOWS.md,
+    ...SHADOWS.lg,
   },
-  imagePlaceholder: {
-    height: 120,
-    backgroundColor: COLORS.background,
+  menuImageContainer: {
+    width: 100,
+    height: 100,
+    position: 'relative',
+  },
+  menuImageGradient: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.secondary + '20',
   },
-  menuInfo: {
+  menuImageGradientUnavailable: {
+    backgroundColor: '#2A2A2A',
+  },
+  menuContent: {
+    flex: 1,
     padding: SPACING.md,
+    justifyContent: 'center',
   },
   itemName: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '700',
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
@@ -223,12 +236,16 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     color: COLORS.textLight,
     marginBottom: SPACING.sm,
-    minHeight: 36,
   },
   itemPrice: {
-    fontSize: FONT_SIZE.lg,
+    fontSize: FONT_SIZE.xl,
     fontWeight: '700',
     color: COLORS.primary,
+  },
+  menuArrow: {
+    justifyContent: 'center',
+    paddingRight: SPACING.md,
+    paddingLeft: SPACING.sm,
   },
   unavailableBadge: {
     position: 'absolute',
@@ -237,7 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.unavailableBadge,
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   unavailableText: {
     fontSize: FONT_SIZE.xs,
@@ -246,13 +263,7 @@ const styles = StyleSheet.create({
   },
   menuCardUnavailable: {
     backgroundColor: COLORS.unavailableBackground,
-    opacity: 0.7,
-  },
-  imagePlaceholderUnavailable: {
-    backgroundColor: '#2A2A2A',
-  },
-  menuInfoUnavailable: {
-    opacity: 0.6,
+    opacity: 0.8,
   },
   itemNameUnavailable: {
     color: COLORS.unavailableText,
@@ -277,7 +288,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     backgroundColor: COLORS.surface,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     alignItems: 'center',

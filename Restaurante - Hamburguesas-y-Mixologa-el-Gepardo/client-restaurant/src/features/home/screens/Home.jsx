@@ -5,8 +5,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
 import { Card } from '../../../shared/components/common/Common.jsx';
 import AppHeader from '../../../shared/components/layout/AppHeader.jsx';
+import useAuthStore from '../../../shared/store/authStore.js';
 
 const Home = ({ navigation }) => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin';
+
   const quickActions = [
     {
       id: 'tables',
@@ -14,6 +18,7 @@ const Home = ({ navigation }) => {
       icon: 'table-restaurant',
       color: COLORS.primary,
       screen: 'Mesas',
+      adminOnly: true,
     },
     {
       id: 'orders',
@@ -28,6 +33,7 @@ const Home = ({ navigation }) => {
       icon: 'restaurant-menu',
       color: COLORS.warning,
       screen: 'Menú',
+      adminOnly: true,
     },
     {
       id: 'profile',
@@ -36,7 +42,7 @@ const Home = ({ navigation }) => {
       color: COLORS.secondary,
       screen: 'Perfil',
     },
-  ];
+  ].filter(action => !action.adminOnly || isAdmin);
 
   const specials = [
     {

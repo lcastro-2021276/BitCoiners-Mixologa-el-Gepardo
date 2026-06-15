@@ -1,14 +1,19 @@
 import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema({
-    customerName: { type: String, required: true },
-    rating: { type: Number, required: true, min: 1, max: 5 },
-    comment: String,
+    // Nuevo formato para el cliente
+    targetType: { type: String },
+    targetId: { type: String },
+    user: { type: String },
+    // Formato antiguo para el admin
+    customerName: { type: String },
     restaurant: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Restaurant",
-        required: true
+        ref: "Restaurant"
     },
+    // Campos comunes
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String },
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 

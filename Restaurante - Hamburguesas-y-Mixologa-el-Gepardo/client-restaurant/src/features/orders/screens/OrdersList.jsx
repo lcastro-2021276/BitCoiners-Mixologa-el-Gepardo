@@ -1,16 +1,19 @@
 // c:\repo\BitCoiners-Mixologa-el-Gepardo\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\client-restaurant\src\features\orders\screens\OrdersList.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
 import { Card, LoadingSpinner, EmptyState } from '../../../shared/components/common/Common.jsx';
 import { useOrders } from '../hooks/useOrders.js';
 import AppHeader from '../../../shared/components/layout/AppHeader.jsx';
+import useAuthStore from '../../../shared/store/authStore.js';
 
 const OrdersList = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const { fetchOrders, loading, error } = useOrders();
+  const { fetchOrders, cancelOrder, loading, error } = useOrders();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin';
 
   const loadOrders = useCallback(async () => {
     const result = await fetchOrders();
@@ -50,9 +53,38 @@ const OrdersList = ({ navigation }) => {
         return 'En Preparación';
       case 'entregado':
         return 'Entregado';
+      case 'cancelado':
+        return 'Cancelado';
       default:
         return status;
     }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    Alert.alert(
+      'Cancelar Pedido',
+      '¿Estás seguro de cancelar este pedido?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sí, Cancelar',
+          style: 'destructive',
+          onPress: async () => {
+            const result = await cancelOrder(orderId);
+            if (result.success) {
+              Alert.alert('Éxito', 'Pedido cancelado correctamente');
+              loadOrders();
+            } else {
+              Alert.alert('Error', result.error || 'Error al cancelar pedido');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const isCancellable = (status) => {
+    return status === 'pendiente';
   };
 
   const calculateKPIs = () => {
@@ -82,6 +114,16 @@ const OrdersList = ({ navigation }) => {
       >
         <View style={styles.header}>
           <Text style={styles.title}>Pedidos</Text>
+          <TouchableOpacity
+            style={styles.newOrderButton}
+            activeOpacity={0.7}
+            onPress={() => {
+              console.log('Botón Crear Pedido presionado');
+              navigation.navigate('CreateOrder');
+            }}
+          >
+            <MaterialIcons name="add" size={24} color={COLORS.surface} />
+          </TouchableOpacity>
         </View>
 
       <View style={styles.kpiContainer}>
@@ -119,7 +161,7 @@ const OrdersList = ({ navigation }) => {
             <TouchableOpacity
               key={order._id || order.id || order.table?.number || JSON.stringify(order)}
               style={styles.orderCard}
-              onPress={() => navigation.navigate('CreateOrder', { orderId: order._id || order.id })}
+              onPress={() => navigation.navigate('OrderDetail', { orderId: order._id || order.id })}
             >
               <View style={styles.orderHeader}>
                 <Text style={styles.tableText}>Mesa {order.table?.number || order.table}</Text>
@@ -153,6 +195,15 @@ const OrdersList = ({ navigation }) => {
                   })}
                 </Text>
               </View>
+              {isCancellable(order.status) && (
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => handleCancelOrder(order._id || order.id)}
+                >
+                  <MaterialIcons name="cancel" size={18} color={COLORS.error} />
+                  <Text style={styles.cancelButtonText}>Cancelar Pedido</Text>
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -174,12 +225,25 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: SPACING.lg,
   },
   title: {
     fontSize: FONT_SIZE.xxxl,
     fontWeight: '700',
     color: COLORS.primary,
+  },
+  newOrderButton: {
+    backgroundColor: COLORS.primary,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.md,
+    zIndex: 10,
   },
   kpiContainer: {
     flexDirection: 'row',
@@ -287,6 +351,21 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: FONT_SIZE.xs,
     color: COLORS.textLight,
+  },
+  cancelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    backgroundColor: '#fee2e2',
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginTop: SPACING.sm,
+  },
+  cancelButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.error,
   },
 });
 

@@ -77,14 +77,14 @@ const RegisterScreen = ({ navigation }) => {
             label="Correo electrónico"
             name="email"
             control={control}
-            rules={{ 
+            rules={{
               required: 'El correo es requerido',
               pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Correo inválido'
+                value: /^[A-Z0-9._%+-]+@(gmail\.com|kinal\.edu\.gt)$/i,
+                message: 'Solo se permiten correos @gmail.com (clientes) o @kinal.edu.gt (administradores)'
               }
             }}
-            placeholder="ejemplo@correo.com"
+            placeholder="ejemplo@gmail.com o ejemplo@kinal.edu.gt"
             keyboardType="email-address"
             error={errors.email?.message}
           />

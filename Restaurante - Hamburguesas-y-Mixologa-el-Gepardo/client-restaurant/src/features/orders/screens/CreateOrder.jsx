@@ -14,18 +14,25 @@ const CreateOrder = ({ route, navigation }) => {
   const { createOrder, loading, error } = useOrders();
   const [selectedItems, setSelectedItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [orderType, setOrderType] = useState('table'); // 'table', 'delivery', 'takeout'
 
   const { control, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
       table: '',
       productId: '',
       quantity: 1,
+      address: '',
+      phone: '',
+      notes: '',
     },
   });
 
   const table = watch('table');
   const productId = watch('productId');
   const quantity = watch('quantity');
+  const address = watch('address');
+  const phone = watch('phone');
+  const notes = watch('notes');
 
   const menuItems = [
     { id: 1, name: 'Hamburguesa Clásica', price: 85.00 },
@@ -78,13 +85,7 @@ const CreateOrder = ({ route, navigation }) => {
       return;
     }
 
-    if (!data.table) {
-      Alert.alert('Error', 'Selecciona una mesa');
-      return;
-    }
-
     const orderData = {
-      table: parseInt(data.table),
       items: selectedItems.map((item) => ({
         productId: item.productId,
         name: item.name,
@@ -93,14 +94,46 @@ const CreateOrder = ({ route, navigation }) => {
       })),
       total,
       status: 'pendiente',
+      orderType,
     };
+
+    if (orderType === 'table') {
+      if (!data.table) {
+        Alert.alert('Error', 'Selecciona una mesa');
+        return;
+      }
+      orderData.table = parseInt(data.table);
+    } else if (orderType === 'delivery') {
+      if (!data.address) {
+        Alert.alert('Error', 'Ingresa la dirección de entrega');
+        return;
+      }
+      if (!data.phone) {
+        Alert.alert('Error', 'Ingresa el teléfono de contacto');
+        return;
+      }
+      orderData.address = data.address;
+      orderData.phone = data.phone;
+      orderData.deliveryFee = 25.00; // Delivery fee
+      orderData.total += orderData.deliveryFee;
+    } else if (orderType === 'takeout') {
+      if (!data.phone) {
+        Alert.alert('Error', 'Ingresa el teléfono de contacto');
+        return;
+      }
+      orderData.phone = data.phone;
+    }
+
+    if (data.notes) {
+      orderData.notes = data.notes;
+    }
 
     const result = await createOrder(orderData);
     if (result.success) {
       Alert.alert('Éxito', 'Pedido creado correctamente', [
         {
           text: 'OK',
-          onPress: () => navigation.goBack(),
+          onPress: () => navigation.navigate('Pedidos'),
         },
       ]);
     } else {
@@ -121,16 +154,84 @@ const CreateOrder = ({ route, navigation }) => {
       )}
 
       <Card style={styles.formCard}>
-        <Text style={styles.sectionTitle}>Información de la Mesa</Text>
-        <Input
-          label="Número de Mesa"
-          name="table"
-          control={control}
-          rules={{ required: 'El número de mesa es requerido' }}
-          placeholder="Ej: 1"
-          keyboardType="number-pad"
-        />
+        <Text style={styles.sectionTitle}>Tipo de Pedido</Text>
+        <View style={styles.orderTypeContainer}>
+          <TouchableOpacity
+            style={[styles.orderTypeButton, orderType === 'table' && styles.orderTypeButtonActive]}
+            onPress={() => setOrderType('table')}
+          >
+            <MaterialIcons name="table-restaurant" size={24} color={orderType === 'table' ? COLORS.surface : COLORS.primary} />
+            <Text style={[styles.orderTypeText, orderType === 'table' && styles.orderTypeTextActive]}>En Mesa</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.orderTypeButton, orderType === 'delivery' && styles.orderTypeButtonActive]}
+            onPress={() => setOrderType('delivery')}
+          >
+            <MaterialIcons name="delivery-dining" size={24} color={orderType === 'delivery' ? COLORS.surface : COLORS.primary} />
+            <Text style={[styles.orderTypeText, orderType === 'delivery' && styles.orderTypeTextActive]}>A Domicilio</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.orderTypeButton, orderType === 'takeout' && styles.orderTypeButtonActive]}
+            onPress={() => setOrderType('takeout')}
+          >
+            <MaterialIcons name="takeout-dining" size={24} color={orderType === 'takeout' ? COLORS.surface : COLORS.primary} />
+            <Text style={[styles.orderTypeText, orderType === 'takeout' && styles.orderTypeTextActive]}>Para Llevar</Text>
+          </TouchableOpacity>
+        </View>
       </Card>
+
+      {orderType === 'table' && (
+        <Card style={styles.formCard}>
+          <Text style={styles.sectionTitle}>Información de la Mesa</Text>
+          <Input
+            label="Número de Mesa"
+            name="table"
+            control={control}
+            rules={{ required: 'El número de mesa es requerido' }}
+            placeholder="Ej: 1"
+            keyboardType="number-pad"
+          />
+        </Card>
+      )}
+
+      {(orderType === 'delivery' || orderType === 'takeout') && (
+        <Card style={styles.formCard}>
+          <Text style={styles.sectionTitle}>
+            {orderType === 'delivery' ? 'Información de Entrega' : 'Información de Recogida'}
+          </Text>
+          {orderType === 'delivery' && (
+            <Input
+              label="Dirección de Entrega"
+              name="address"
+              control={control}
+              rules={{ required: 'La dirección es requerida' }}
+              placeholder="Calle, número, colonia"
+            />
+          )}
+          <Input
+            label="Teléfono de Contacto"
+            name="phone"
+            control={control}
+            rules={{ required: 'El teléfono es requerido' }}
+            placeholder="+52 55 1234 5678"
+            keyboardType="phone-pad"
+          />
+          <Input
+            label="Notas Adicionales (Opcional)"
+            name="notes"
+            control={control}
+            placeholder="Instrucciones especiales"
+            multiline
+            numberOfLines={3}
+          />
+          {orderType === 'delivery' && (
+            <View style={styles.deliveryFeeContainer}>
+              <MaterialIcons name="local-shipping" size={20} color={COLORS.primary} />
+              <Text style={styles.deliveryFeeText}>Costo de envío: $25.00</Text>
+            </View>
+          )}
+        </Card>
+      )}
 
       <Card style={styles.formCard}>
         <Text style={styles.sectionTitle}>Agregar Productos</Text>
@@ -280,6 +381,49 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: SPACING.lg,
+  },
+  orderTypeContainer: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  orderTypeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    backgroundColor: COLORS.background,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.sm,
+  },
+  orderTypeButtonActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  orderTypeText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  orderTypeTextActive: {
+    color: COLORS.surface,
+  },
+  deliveryFeeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.primary + '10',
+    padding: SPACING.md,
+    borderRadius: 8,
+    marginTop: SPACING.md,
+  },
+  deliveryFeeText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
 });
 

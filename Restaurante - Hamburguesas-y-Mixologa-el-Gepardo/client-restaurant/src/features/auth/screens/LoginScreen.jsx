@@ -125,9 +125,6 @@ const LoginScreen = ({ navigation }) => {
               style={styles.logoImage}
               resizeMode="contain"
             />
-            <View style={styles.crown}>
-              <MaterialIcons name="emoji-events" size={35} color="#FFD700" />
-            </View>
           </View>
           <Text style={styles.brandName}>EL GEPARDO</Text>
           <Text style={styles.brandSubtitle}>Hamburguesas & Mixología</Text>
