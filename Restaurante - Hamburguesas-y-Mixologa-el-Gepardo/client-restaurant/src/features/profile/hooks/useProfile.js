@@ -51,10 +51,45 @@ export const useProfile = () => {
     await logout();
   };
 
+  const changePassword = useCallback(async (passwordData) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await adminClient.put('/users/change-password', passwordData);
+      
+      return { success: true, data: response.data };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al cambiar contraseña');
+      return { success: false, error: err.response?.data?.message || 'Error al cambiar contraseña' };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await adminClient.delete('/users/account');
+      await logout();
+      
+      return { success: true, data: response.data };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al eliminar cuenta');
+      return { success: false, error: err.response?.data?.message || 'Error al eliminar cuenta' };
+    } finally {
+      setLoading(false);
+    }
+  }, [logout]);
+
   return {
     fetchProfile,
     updateProfile,
     handleLogout,
+    changePassword,
+    deleteAccount,
     loading,
     error,
   };
