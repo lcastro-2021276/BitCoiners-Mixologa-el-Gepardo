@@ -24,6 +24,8 @@ export const Card = ({ children, style }) => {
   return <View style={[styles.card, style]}>{children}</View>;
 };
 
+export { default as Rating } from './Rating.jsx';
+
 const styles = StyleSheet.create({
   centerContainer: {
     flex: 1,
