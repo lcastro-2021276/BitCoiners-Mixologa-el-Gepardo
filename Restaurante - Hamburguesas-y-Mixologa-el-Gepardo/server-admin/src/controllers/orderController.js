@@ -3,38 +3,87 @@ import Menu from "../models/MenuItem.js";
 
 export const createOrder = async (req, res) => {
     try {
-        const { table, items } = req.body;
+        const { table, items, orderType, total, status, address, phone, notes, deliveryFee } = req.body;
 
-        let total = 0;
+        let calculatedTotal = 0;
 
+        // Soportar ambos formatos: el nuevo (productId, name, price) y el antiguo (menuItem)
         const detailedItems = await Promise.all(items.map(async (item) => {
-            const menuItem = await Menu.findById(item.menuItem);
+            let menuItem;
+            let price;
 
-            if (!menuItem) {
-                throw new Error("Producto no encontrado");
+            if (item.productId) {
+                // Formato nuevo del cliente
+                menuItem = await Menu.findById(item.productId);
+                if (!menuItem) {
+                    throw new Error("Producto no encontrado");
+                }
+                price = item.price || menuItem.price;
+            } else if (item.menuItem) {
+                // Formato antiguo
+                menuItem = await Menu.findById(item.menuItem);
+                if (!menuItem) {
+                    throw new Error("Producto no encontrado");
+                }
+                price = menuItem.price;
+            } else {
+                throw new Error("Formato de item inválido");
             }
 
-            const subtotal = menuItem.price * item.quantity;
-            total += subtotal;
+            const subtotal = price * item.quantity;
+            calculatedTotal += subtotal;
 
             return {
                 menuItem: menuItem._id,
                 quantity: item.quantity,
-                price: menuItem.price
+                price: price,
+                name: item.name || menuItem.name
             };
         }));
 
-        const order = new Order({
-            table,
-            items: detailedItems,
-            total
-        });
+        // Usar el total proporcionado o el calculado
+        const finalTotal = total || calculatedTotal;
+        if (deliveryFee) {
+            finalTotal += deliveryFee;
+        }
 
+        const orderData = {
+            items: detailedItems,
+            total: finalTotal,
+            status: status || 'pendiente'
+        };
+
+        if (table) {
+            orderData.table = table;
+        }
+
+        if (orderType) {
+            orderData.orderType = orderType;
+        }
+
+        if (address) {
+            orderData.address = address;
+        }
+
+        if (phone) {
+            orderData.phone = phone;
+        }
+
+        if (notes) {
+            orderData.notes = notes;
+        }
+
+        if (deliveryFee) {
+            orderData.deliveryFee = deliveryFee;
+        }
+
+        const order = new Order(orderData);
         await order.save();
 
         res.status(201).json(order);
 
     } catch (error) {
+        console.error("Error creating order:", error);
         res.status(400).json({ error: error.message });
     }
 };
