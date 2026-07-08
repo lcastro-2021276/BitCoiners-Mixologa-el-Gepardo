@@ -1,5 +1,7 @@
 import Order from "../models/Order.js";
 import Menu from "../models/MenuItem.js";
+import { createNotification } from "./notification.controller.js";
+import User from "../models/User.js";
 
 export const createOrder = async (req, res) => {
     try {
@@ -80,6 +82,17 @@ export const createOrder = async (req, res) => {
         const order = new Order(orderData);
         await order.save();
 
+        // Enviar notificación al cliente cuando se crea el pedido
+        if (req.user && req.user.id) {
+            await createNotification(
+                req.user.id,
+                "order_created",
+                "Pedido en proceso",
+                `Tu pedido #${order._id.toString().slice(-6)} ha sido recibido y está siendo preparado.`,
+                order._id
+            );
+        }
+
         res.status(201).json(order);
 
     } catch (error) {
@@ -97,6 +110,17 @@ export const updateStatus = async (req, res) => {
             { status },
             { new: true }
         );
+
+        // Enviar notificación cuando el pedido es entregado
+        if (status === "entregado" && req.user && req.user.id) {
+            await createNotification(
+                req.user.id,
+                "order_delivered",
+                "Pedido entregado",
+                `Tu pedido #${order._id.toString().slice(-6)} ha sido entregado. ¡Buen provecho!`,
+                order._id
+            );
+        }
 
         res.json(order);
     } catch (error) {
