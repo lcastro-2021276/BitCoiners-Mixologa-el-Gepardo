@@ -191,6 +191,11 @@ export const MenuPage = () => {
 
     const matchCat = filterCat === "all" || item.category === filterCat;
 
+    // Para clientes, solo mostrar items disponibles
+    if (isClient && !isAvailable(item)) {
+      return false;
+    }
+
     return matchRest && matchCat;
   });
 
@@ -315,11 +320,11 @@ export const MenuPage = () => {
             <div
               key={item._id}
               style={{
-                background: !available ? "var(--color-unavailable-bg)" : "#fff",
-                border: !available ? "2px solid var(--color-unavailable-border)" : "1px solid #e8e4dc",
+                background: !available ? "#000000" : "#fff",
+                border: !available ? "2px solid #333" : "1px solid #e8e4dc",
                 borderRadius: "14px",
                 overflow: "hidden",
-                opacity: !available ? 0.7 : 1,
+                opacity: !available ? 0.8 : 1,
               }}
             >
               <div style={{ background: "#0e1e15", padding: "0", color: "#fff", overflow: "hidden" }}>
@@ -359,12 +364,12 @@ export const MenuPage = () => {
                       {availabilityLabel}
                     </div>
                   </div>
-                  <h3 style={{ margin: "4px 0 0", fontWeight: 300 }}>{item.name}</h3>
+                  <h3 style={{ margin: "4px 0 0", fontWeight: 300, color: !available ? "#fff" : "#fff" }}>{item.name}</h3>
                 </div>
               </div>
 
-              <div style={{ padding: "14px" }}>
-                <p style={{ fontSize: "12px", color: !available ? "var(--color-unavailable-text)" : "#777" }}>
+              <div style={{ padding: "14px", background: !available ? "#000000" : "#fff" }}>
+                <p style={{ fontSize: "12px", color: !available ? "#ffffff" : "#777" }}>
                   {item.description || "Sin descripción"}
                 </p>
 
@@ -373,7 +378,7 @@ export const MenuPage = () => {
                     Q{Number(item.price).toFixed(2)}
                   </p>
                 ) : (
-                  <p style={{ color: "var(--color-unavailable-text)", fontStyle: "italic", fontSize: "12px" }}>
+                  <p style={{ color: "#ffffff", fontStyle: "italic", fontSize: "12px" }}>
                     No disponible temporalmente
                   </p>
                 )}

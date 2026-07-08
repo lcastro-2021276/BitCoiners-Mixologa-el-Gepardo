@@ -11,7 +11,11 @@ const EMPTY_FORM = {
 
 export const UsersPage = () => {
   const [users, setUsers] = useState([]);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([
+    { _id: "admin", name: "Admin" },
+    { _id: "cliente", name: "Cliente" },
+    { _id: "mesero", name: "Mesero" },
+  ]);
 
   const [loading, setLoading] = useState(true);
 
@@ -40,9 +44,25 @@ export const UsersPage = () => {
       ]);
 
       setUsers(usersRes.data);
-      setRoles(rolesRes.data);
+      
+      // Si no hay roles, usar roles por defecto
+      if (!rolesRes.data || rolesRes.data.length === 0) {
+        setRoles([
+          { _id: "admin", name: "Admin" },
+          { _id: "cliente", name: "Cliente" },
+          { _id: "mesero", name: "Mesero" },
+        ]);
+      } else {
+        setRoles(rolesRes.data);
+      }
     } catch (err) {
       console.log(err);
+      // En caso de error, usar roles por defecto
+      setRoles([
+        { _id: "admin", name: "Admin" },
+        { _id: "cliente", name: "Cliente" },
+        { _id: "mesero", name: "Mesero" },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -431,12 +451,16 @@ export const UsersPage = () => {
                 onChange={(e) =>
                   setForm({ ...form, role: e.target.value })
                 }
-                style={inputStyle}
+                style={{
+                  ...inputStyle,
+                  backgroundColor: "#1a1a1a",
+                  color: "#fff",
+                }}
               >
                 <option value="">Seleccionar rol</option>
 
                 {roles.map((role) => (
-                  <option key={role._id} value={role._id}>
+                  <option key={role._id} value={role._id} style={{ color: "#000" }}>
                     {role.name}
                   </option>
                 ))}
