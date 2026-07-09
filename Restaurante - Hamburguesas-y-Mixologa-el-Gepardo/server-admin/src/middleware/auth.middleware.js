@@ -44,6 +44,9 @@ export const verifyToken = (req, res, next) => {
     }
 };
 
+// Alias para compatibilidad
+export const authenticate = verifyToken;
+
 export const verifyRole = (role) => {
 
     return (req, res, next) => {
