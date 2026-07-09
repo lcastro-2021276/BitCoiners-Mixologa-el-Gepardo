@@ -14,6 +14,7 @@ import orderRoutes from "./src/routes/order.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
 import reservationRoutes from "./src/routes/reservation.routes.js";
 import reviewRoutes from "./src/routes/review.routes.js";
+import notificationRoutes from "./src/routes/notification.routes.js";
 
 
 dotenv.config();
@@ -21,7 +22,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true,
 }));
 
@@ -35,7 +36,10 @@ const swaggerOptions = {
             version: "1.0.0",
             description: "Documentación completa del Sistema Gestor Restaurantes"
         },
-        servers: [{ url: "http://localhost:3000" }],
+        servers: [
+            { url: process.env.API_URL || "http://localhost:3000", description: "API en producción" },
+            { url: "http://localhost:3000", description: "API local" }
+        ],
         components: {
             securitySchemes: {
                 bearerAuth: {
@@ -74,8 +78,10 @@ app.use("/orders", orderRoutes);
 app.use("/users", userRoutes);
 app.use("/reservations", reservationRoutes);
 app.use("/reviews", reviewRoutes);
+app.use("/notifications", notificationRoutes);
 
-app.listen(3000, () => {
-    console.log("Servidor corriendo en http://localhost:3000");
-    console.log("Swagger docs: http://localhost:3000/api-docs");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log("Servidor corriendo en http://localhost:" + PORT);
+    console.log("Swagger docs: http://localhost:" + PORT + "/api-docs");
 });
