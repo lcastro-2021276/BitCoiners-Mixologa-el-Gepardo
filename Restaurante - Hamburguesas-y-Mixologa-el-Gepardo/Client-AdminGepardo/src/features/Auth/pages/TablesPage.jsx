@@ -214,7 +214,6 @@ export const TablesPage = () => {
                   }}
                 >
                   <div>
-                    <p style={mini}>Mesa</p>
                     <h2 style={number}>#{t.number}</h2>
                   </div>
 
@@ -239,19 +238,16 @@ export const TablesPage = () => {
                 <div style={body}>
 
                   <div style={infoBox}>
-                    <p style={mini2}>Capacidad</p>
                     <p style={infoValue}>{t.capacity} personas</p>
                   </div>
 
                   <div style={infoBox}>
-                    <p style={mini2}>Estado</p>
                     <p style={{ ...infoValue, color: isFree ? "#10b981" : "#ef4444" }}>
                       {isFree ? "Libre" : "En uso"}
                     </p>
                   </div>
 
                   <div style={infoBoxFull}>
-                    <p style={mini2}>Restaurante</p>
                     <p style={infoValue}>
                       🍽 {t.restaurant?.name || "—"}
                     </p>

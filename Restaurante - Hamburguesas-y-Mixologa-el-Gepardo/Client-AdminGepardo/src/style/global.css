@@ -23,6 +23,13 @@
   --color-unavailable-border:  #991B1B;
   --color-unavailable-text:   #FF4D4D;
   --color-unavailable-badge:  #DC2626;
+
+  /* Order page colors */
+  --color-gold:        #C9972A;
+  --color-gold-dark:   #B8860B;
+  --color-blue:        #4A90E2;
+  --color-green:       #2ecc71;
+  --color-green-dark:  #1B7A4A;
 }
 
 :root {
@@ -123,4 +130,267 @@ body {
 .card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+}
+
+/* Order Page Styles */
+.order-kpi-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgba(201, 151, 42, 0.15);
+  background: linear-gradient(to bottom right, #0f2018, #0a1510);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.order-kpi-card:hover {
+  border-color: rgba(201, 151, 42, 0.3);
+  box-shadow: 0 10px 30px rgba(184, 134, 11, 0.2);
+  transform: scale(1.02);
+}
+
+.order-kpi-accent {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  transition: all 0.3s ease;
+}
+
+.order-kpi-card:hover .order-kpi-accent {
+  height: 4px;
+}
+
+.order-kpi-glow {
+  position: absolute;
+  right: -1.5rem;
+  top: -1.5rem;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  opacity: 0.1;
+  filter: blur(2rem);
+  transition: opacity 0.3s ease;
+}
+
+.order-kpi-card:hover .order-kpi-glow {
+  opacity: 0.2;
+}
+
+.order-kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.order-kpi-card:hover .order-kpi-value {
+  transform: scale(1.05);
+}
+
+.order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.order-status-badge .status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.order-table {
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgba(201, 151, 42, 0.2);
+  background: linear-gradient(to bottom right, #0f2018, #0a1510);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.order-table-row {
+  transition: all 0.2s ease;
+}
+
+.order-table-row:hover {
+  background: rgba(255, 255, 255, 0.015);
+  transform: scale(1.005);
+}
+
+.order-action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  padding: 0.625rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.order-action-button:hover {
+  transform: scale(1.05);
+}
+
+.order-action-button:active {
+  transform: scale(0.95);
+}
+
+.order-client-card {
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgba(201, 151, 42, 0.2);
+  background: linear-gradient(to bottom right, #0f2018, #0a1510);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.order-client-card:hover {
+  box-shadow: 0 10px 30px rgba(184, 134, 11, 0.2);
+}
+
+.order-client-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.order-client-icon:hover {
+  transform: scale(1.1);
+}
+
+.order-client-icon-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  opacity: 0.2;
+  filter: blur(1rem);
+}
+
+.order-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(201, 151, 42, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.order-item-row:hover {
+  background: rgba(201, 151, 42, 0.05);
+  border-color: rgba(201, 151, 42, 0.25);
+}
+
+.order-menu-item-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.order-menu-item-card:hover {
+  transform: scale(1.02);
+}
+
+.order-menu-item-card.in-cart {
+  border-color: rgba(201, 151, 42, 0.4);
+  background: rgba(201, 151, 42, 0.07);
+  box-shadow: 0 10px 30px rgba(184, 134, 11, 0.15);
+  transform: scale(1.02);
+}
+
+.order-quantity-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(201, 151, 42, 0.25);
+  color: rgba(201, 151, 42, 0.6);
+  transition: all 0.2s ease;
+}
+
+.order-quantity-button:hover:not(:disabled) {
+  border-color: rgba(201, 151, 42, 0.5);
+  background: rgba(201, 151, 42, 0.15);
+  color: #C9972A;
+  transform: scale(1.1);
+}
+
+.order-quantity-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.order-quantity-button.add {
+  background: #C9972A;
+  color: #0d1b14;
+  box-shadow: 0 10px 30px rgba(184, 134, 11, 0.2);
+}
+
+.order-quantity-button.add:hover {
+  background: #B8860B;
+  transform: scale(1.1);
+}
+
+.order-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(0.75rem);
+  padding: 1rem;
+}
+
+.order-modal-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 80rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(201, 151, 42, 0.2);
+  background: #0d1b14;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.order-cart-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(201, 151, 42, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.order-cart-item:hover {
+  background: rgba(201, 151, 42, 0.05);
+  border-color: rgba(201, 151, 42, 0.25);
 }

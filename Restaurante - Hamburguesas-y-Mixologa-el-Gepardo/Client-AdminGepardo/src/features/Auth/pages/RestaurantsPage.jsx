@@ -299,16 +299,16 @@ export const RestaurantsPage = () => {
                     {availabilityLabel}
                   </div>
                 </div>
-                <h3 style={{ color: "#1a1a1a", fontWeight: 300, marginTop: 10 }}>
+                <h3 style={{ color: "#000000", fontWeight: 300, marginTop: 10 }}>
                   {r.name}
                 </h3>
-                <p style={{ color: "rgba(0,0,0,0.6)", fontSize: "12px" }}>
+                <p style={{ color: "#000000", fontSize: "12px", fontWeight: 500 }}>
                   {r.address || "Sin dirección"}
                 </p>
               </div>
 
               {/* BODY */}
-              <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              <div style={{ padding: "14px", display: "flex", flexDirection: "column", gap: "8px", background: "#ffffff" }}>
 
                 <p style={infoText}> {r.phone || "—"}</p>
                 <p style={infoText}> {r.email || "—"}</p>
@@ -481,7 +481,7 @@ const dot = {
 };
 
 const restaurantCard = {
-  background: "#f8f8f8",
+  background: "#ffffff",
   borderRadius: "16px",
   overflow: "hidden",
   border: "1px solid #e0e0e0",
@@ -489,7 +489,7 @@ const restaurantCard = {
 
 const restaurantTop = {
   padding: "16px",
-  background: "#f0f0f0",
+  background: "#ffffff",
 };
 
 const tag = {
@@ -501,7 +501,8 @@ const tag = {
 
 const infoText = {
   fontSize: "12px",
-  color: "rgba(255,255,255,0.8)",
+  color: "#000000",
+  fontWeight: 500,
 };
 
 const overlay = {

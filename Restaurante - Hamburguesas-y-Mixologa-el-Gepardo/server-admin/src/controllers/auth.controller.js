@@ -13,9 +13,10 @@ export const register = async (req, res) => {
     const email = body.email || '';
     const password = body.password || '';
     const phone = body.phone || '';
+    const role = body.role;
 
-    if (!name || !email || !password || !username) {
-      return res.status(400).json({ message: "Faltan campos requeridos" });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Faltan campos requeridos: nombre, email y contraseña" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -23,22 +24,62 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "El usuario ya existe" });
     }
 
-    // Obtener el rol de "Cliente" por defecto
+    // Si no se proporciona username, generar uno basado en el email
+    const finalUsername = username || email.split('@')[0];
+
+    // Verificar si el username ya existe
+    const existingUsername = await User.findOne({ username: finalUsername });
+    if (existingUsername) {
+      return res.status(400).json({ message: "El nombre de usuario ya existe" });
+    }
+
+    // Obtener el rol
     let roleId;
-    const clientRole = await Role.findOne({ name: "Cliente" });
-    if (clientRole) {
-      roleId = clientRole._id;
+    if (role) {
+      // Si se proporciona un rol, buscarlo por nombre o ID
+      let roleDoc;
+      // Intentar buscar por ID primero
+      try {
+        roleDoc = await Role.findById(role);
+      } catch (e) {
+        // Si falla, buscar por nombre
+      }
+
+      // Si no se encontró por ID, buscar por nombre
+      if (!roleDoc) {
+        roleDoc = await Role.findOne({ name: role });
+      }
+
+      if (roleDoc) {
+        roleId = roleDoc._id;
+      } else {
+        // Si no existe el rol, crearlo
+        const newRole = new Role({ name: role });
+        await newRole.save();
+        roleId = newRole._id;
+      }
     } else {
-      // Si no existe el rol, crear uno por defecto
-      const newRole = new Role({ name: "Cliente" });
-      await newRole.save();
-      roleId = newRole._id;
+      // Obtener el rol de "Cliente" por defecto
+      const clientRole = await Role.findOne({ name: "Cliente" });
+      if (clientRole) {
+        roleId = clientRole._id;
+      } else {
+        // Si no existe el rol, crear uno por defecto
+        const newRole = new Role({ name: "Cliente" });
+        await newRole.save();
+        roleId = newRole._id;
+      }
+    }
+
+    // Verificar que tengamos un roleId válido
+    if (!roleId) {
+      return res.status(400).json({ message: "No se pudo asignar un rol al usuario" });
     }
 
     const newUser = new User({
       name,
       surname: surname || '',
-      username,
+      username: finalUsername,
       email,
       password,  // el modelo User tiene pre('save') que hashea automáticamente
       phone: phone || '',
