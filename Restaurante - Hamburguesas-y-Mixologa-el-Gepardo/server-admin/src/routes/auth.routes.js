@@ -1,5 +1,5 @@
 import express from "express";
-import { register, login } from "../controllers/auth.controller.js";
+import { register, login, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -120,5 +120,67 @@ router.get("/me", verifyToken, (req, res) => {
     user: req.user,
   });
 });
+
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Solicitar restablecimiento de contraseña
+ *     description: Envía un correo con instrucciones para restablecer la contraseña
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: usuario@test.com
+ *     responses:
+ *       200:
+ *         description: Correo enviado exitosamente
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error del servidor
+ */
+router.post("/forgot-password", forgotPassword);
+
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Restablecer contraseña
+ *     description: Restablece la contraseña usando el token recibido por correo
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: abc123def456...
+ *               newPassword:
+ *                 type: string
+ *                 example: nuevaPassword123
+ *     responses:
+ *       200:
+ *         description: Contraseña restablecida exitosamente
+ *       400:
+ *         description: Token inválido o expirado
+ *       500:
+ *         description: Error del servidor
+ */
+router.post("/reset-password", resetPassword);
 
 export default router;
