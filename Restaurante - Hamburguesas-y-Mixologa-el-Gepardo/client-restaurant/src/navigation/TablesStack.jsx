@@ -10,9 +10,6 @@ import useAuthStore from '../shared/store/authStore.js';
 const Stack = createNativeStackNavigator();
 
 const TablesStack = () => {
-  const { user } = useAuthStore();
-  const isAdmin = user?.role === 'admin';
-
   return (
     <Stack.Navigator
       screenOptions={{
@@ -21,8 +18,8 @@ const TablesStack = () => {
     >
       <Stack.Screen name="TablesList" component={TablesList} />
       <Stack.Screen name="TableDetail" component={TableDetail} />
-      {isAdmin && <Stack.Screen name="CreateReservation" component={CreateReservation} />}
-      {isAdmin && <Stack.Screen name="ReservationHistory" component={ReservationHistory} />}
+      <Stack.Screen name="CreateReservation" component={CreateReservation} />
+      <Stack.Screen name="ReservationHistory" component={ReservationHistory} />
     </Stack.Navigator>
   );
 };
