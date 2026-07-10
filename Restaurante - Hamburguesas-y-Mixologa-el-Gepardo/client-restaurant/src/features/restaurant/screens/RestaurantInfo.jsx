@@ -112,11 +112,11 @@ const RestaurantInfo = ({ navigation }) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       if (i <= rating) {
-        stars.push(<MaterialIcons key={i} name="star" size={20} color={COLORS.warning} />);
+        stars.push(<MaterialIcons key={`restaurant-star-${i}`} name="star" size={20} color={COLORS.warning} />);
       } else if (i - 0.5 <= rating) {
-        stars.push(<MaterialIcons key={i} name="star-half" size={20} color={COLORS.warning} />);
+        stars.push(<MaterialIcons key={`restaurant-star-half-${i}`} name="star-half" size={20} color={COLORS.warning} />);
       } else {
-        stars.push(<MaterialIcons key={i} name="star-outline" size={20} color={COLORS.warning} />);
+        stars.push(<MaterialIcons key={`restaurant-star-outline-${i}`} name="star-outline" size={20} color={COLORS.warning} />);
       }
     }
     return stars;
@@ -244,7 +244,7 @@ const RestaurantInfo = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Características</Text>
           <View style={styles.featuresContainer}>
             {restaurant.features.map((feature, index) => (
-              <View key={index} style={styles.featureBadge}>
+              <View key={`feature-${index}-${feature}`} style={styles.featureBadge}>
                 <MaterialIcons name="check-circle" size={16} color={COLORS.success} />
                 <Text style={styles.featureText}>{feature}</Text>
               </View>
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    height: 250,
+    height: 280,
   },
   restaurantImage: {
     width: '100%',
@@ -355,8 +355,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    padding: SPACING.lg,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: SPACING.xl,
   },
   restaurantName: {
     fontSize: FONT_SIZE.xxxl,
@@ -365,20 +365,25 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   restaurantCategory: {
-    fontSize: FONT_SIZE.md,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '500',
+    fontSize: FONT_SIZE.lg,
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontWeight: '600',
   },
   ratingCard: {
-    margin: SPACING.md,
-    padding: SPACING.lg,
+    margin: SPACING.lg,
+    padding: SPACING.xl,
     alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '15',
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   rateButton: {
     flexDirection: 'row',
@@ -386,14 +391,15 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     backgroundColor: COLORS.primary,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: 20,
+    paddingVertical: SPACING.md,
+    borderRadius: 16,
     flex: 1,
     justifyContent: 'center',
+    ...SHADOWS.md,
   },
   ratingButtons: {
     flexDirection: 'row',
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
   reviewsButton: {
     flexDirection: 'row',
@@ -401,49 +407,60 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     backgroundColor: COLORS.secondary,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: 20,
+    paddingVertical: SPACING.md,
+    borderRadius: 16,
     flex: 1,
     justifyContent: 'center',
   },
   rateButtonText: {
     fontSize: FONT_SIZE.md,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.surface,
   },
   starsContainer: {
     flexDirection: 'row',
   },
   ratingValue: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontSize: FONT_SIZE.xxxl,
+    fontWeight: '800',
+    color: COLORS.primary,
   },
   reviewsCount: {
     fontSize: FONT_SIZE.md,
     color: COLORS.textLight,
+    fontWeight: '600',
   },
   infoCard: {
-    margin: SPACING.md,
-    padding: SPACING.lg,
+    margin: SPACING.lg,
+    padding: SPACING.xl,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   sectionTitle: {
-    fontSize: FONT_SIZE.lg,
+    fontSize: FONT_SIZE.xl,
     fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
+    color: COLORS.primary,
+    marginBottom: SPACING.lg,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.primary + '20',
   },
   description: {
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
-    lineHeight: 24,
+    lineHeight: 26,
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    marginBottom: SPACING.sm,
   },
   contactInfo: {
     flex: 1,
@@ -453,10 +470,11 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     color: COLORS.textLight,
     marginBottom: SPACING.xs,
+    fontWeight: '600',
   },
   contactValue: {
     fontSize: FONT_SIZE.md,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
   },
   contactSubValue: {
@@ -464,86 +482,96 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
   },
   hoursContainer: {
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
   hoursRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
   },
   dayLabel: {
     fontSize: FONT_SIZE.md,
     color: COLORS.text,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   hoursValue: {
     fontSize: FONT_SIZE.md,
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   priceRange: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: '700',
+    fontSize: FONT_SIZE.xxxl,
+    fontWeight: '800',
     color: COLORS.primary,
     marginBottom: SPACING.xs,
   },
   priceDescription: {
     fontSize: FONT_SIZE.md,
     color: COLORS.textLight,
+    fontWeight: '600',
   },
   featuresContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
   featureBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.primary + '10',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: 20,
-    gap: SPACING.xs,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: 16,
+    gap: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '20',
   },
   featureText: {
     fontSize: FONT_SIZE.sm,
     color: COLORS.text,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: SPACING.lg,
+    gap: SPACING.xl,
   },
   socialButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: COLORS.primary + '10',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.primary + '15',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary + '20',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: SPACING.xl,
   },
   modalContent: {
     backgroundColor: COLORS.surface,
-    borderRadius: 16,
+    borderRadius: 20,
     width: '100%',
     maxWidth: 400,
     ...SHADOWS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '20',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: SPACING.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    padding: SPACING.xl,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.primary + '20',
   },
   modalTitle: {
     fontSize: FONT_SIZE.xl,

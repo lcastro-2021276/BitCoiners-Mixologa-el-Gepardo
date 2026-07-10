@@ -2,16 +2,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
 import { Card, LoadingSpinner, EmptyState } from '../../../shared/components/common/Common.jsx';
 import { useOrders } from '../hooks/useOrders.js';
 import AppHeader from '../../../shared/components/layout/AppHeader.jsx';
 import useAuthStore from '../../../shared/store/authStore.js';
 
-const OrdersList = ({ navigation }) => {
+const OrdersList = () => {
+  const navigation = useNavigation();
   const [orders, setOrders] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const { fetchOrders, cancelOrder, loading, error } = useOrders();
+  const { fetchOrders, cancelOrder, deleteOrder, loading, error } = useOrders();
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'admin';
 
@@ -83,6 +85,29 @@ const OrdersList = ({ navigation }) => {
     );
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    Alert.alert(
+      'Eliminar Pedido',
+      '¿Estás seguro de eliminar este pedido? Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            const result = await deleteOrder(orderId);
+            if (result.success) {
+              Alert.alert('Éxito', 'Pedido eliminado correctamente');
+              loadOrders();
+            } else {
+              Alert.alert('Error', result.error || 'Error al eliminar pedido');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const isCancellable = (status) => {
     return status === 'pendiente';
   };
@@ -115,14 +140,14 @@ const OrdersList = ({ navigation }) => {
         <View style={styles.header}>
           <Text style={styles.title}>Pedidos</Text>
           <TouchableOpacity
-            style={styles.newOrderButton}
+            style={styles.createOrderButton}
             activeOpacity={0.7}
             onPress={() => {
-              console.log('Botón Crear Pedido presionado');
               navigation.navigate('CreateOrder');
             }}
           >
-            <MaterialIcons name="add" size={24} color={COLORS.surface} />
+            <MaterialIcons name="shopping-cart" size={20} color={COLORS.surface} />
+            <Text style={styles.createOrderButtonText}>Hacer Pedido</Text>
           </TouchableOpacity>
         </View>
 
@@ -173,8 +198,8 @@ const OrdersList = ({ navigation }) => {
               <View style={styles.orderBody}>
                 <Text style={styles.itemsLabel}>Productos:</Text>
                 {order.items && order.items.length > 0 ? (
-                  order.items.map((item) => (
-                    <View key={item._id || item.id || item.name} style={styles.itemRow}>
+                  order.items.map((item, index) => (
+                    <View key={`${item._id || item.id || item.name}-${index}`} style={styles.itemRow}>
                       <Text style={styles.itemName}>{item.name}</Text>
                       <Text style={styles.itemQuantity}>x{item.quantity}</Text>
                     </View>
@@ -202,6 +227,15 @@ const OrdersList = ({ navigation }) => {
                 >
                   <MaterialIcons name="cancel" size={18} color={COLORS.error} />
                   <Text style={styles.cancelButtonText}>Cancelar Pedido</Text>
+                </TouchableOpacity>
+              )}
+              {isAdmin && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteOrder(order._id || order.id)}
+                >
+                  <MaterialIcons name="delete" size={18} color={COLORS.error} />
+                  <Text style={styles.deleteButtonText}>Eliminar Pedido</Text>
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
@@ -235,15 +269,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.primary,
   },
-  newOrderButton: {
+  createOrderButton: {
     backgroundColor: COLORS.primary,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    ...SHADOWS.md,
-    zIndex: 10,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: 16,
+    ...SHADOWS.lg,
+    gap: SPACING.sm,
+  },
+  createOrderButtonText: {
+    color: COLORS.surface,
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
   },
   kpiContainer: {
     flexDirection: 'row',
@@ -282,75 +321,92 @@ const styles = StyleSheet.create({
   },
   orderCard: {
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    padding: SPACING.md,
-    ...SHADOWS.md,
+    borderRadius: 16,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: SPACING.md,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   tableText: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '700',
     color: COLORS.text,
   },
   statusBadge: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: 12,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: 20,
   },
   statusText: {
-    fontSize: FONT_SIZE.xs,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
     color: COLORS.surface,
   },
   orderBody: {
     marginBottom: SPACING.md,
   },
   itemsLabel: {
-    fontSize: FONT_SIZE.sm,
+    fontSize: FONT_SIZE.md,
     fontWeight: '600',
-    color: COLORS.textLight,
-    marginBottom: SPACING.xs,
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
   },
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: SPACING.xs,
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    backgroundColor: COLORS.background,
+    borderRadius: 8,
   },
   itemName: {
-    fontSize: FONT_SIZE.sm,
+    fontSize: FONT_SIZE.md,
     color: COLORS.text,
+    flex: 1,
   },
   itemQuantity: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
     color: COLORS.primary,
+    marginLeft: SPACING.sm,
   },
   noItems: {
-    fontSize: FONT_SIZE.sm,
+    fontSize: FONT_SIZE.md,
     color: COLORS.textLight,
     fontStyle: 'italic',
+    textAlign: 'center',
+    padding: SPACING.md,
   },
   orderFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderTopWidth: 1,
+    paddingTop: SPACING.md,
+    marginTop: SPACING.md,
+    borderTopWidth: 2,
     borderTopColor: COLORS.border,
-    paddingTop: SPACING.sm,
   },
   totalText: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '700',
+    fontSize: FONT_SIZE.xxl,
+    fontWeight: '800',
     color: COLORS.primary,
   },
   dateText: {
-    fontSize: FONT_SIZE.xs,
+    fontSize: FONT_SIZE.sm,
     color: COLORS.textLight,
+    fontWeight: '500',
   },
   cancelButton: {
     flexDirection: 'row',
@@ -363,6 +419,23 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
   cancelButtonText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.error,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    backgroundColor: '#fee2e2',
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginTop: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.error,
+  },
+  deleteButtonText: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '600',
     color: COLORS.error,
