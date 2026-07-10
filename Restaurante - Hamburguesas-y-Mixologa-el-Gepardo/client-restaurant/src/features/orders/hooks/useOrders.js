@@ -64,10 +64,73 @@ export const useOrders = () => {
     }
   }, []);
 
+  const fetchOrderById = useCallback(async (orderId) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await adminClient.get(`/orders/${orderId}`);
+      
+      const order = {
+        id: response.data.id,
+        table: response.data.table,
+        items: response.data.items || [],
+        total: response.data.total || 0,
+        status: response.data.status || 'pendiente',
+        notes: response.data.notes || '',
+        deliveryFee: response.data.deliveryFee || 0,
+        orderType: response.data.orderType || 'table',
+        createdAt: response.data.createdAt || new Date().toISOString(),
+      };
+
+      return { success: true, data: order };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al obtener pedido');
+      return { success: false, error: err.response?.data?.message || 'Error al obtener pedido' };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const cancelOrder = useCallback(async (orderId) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await adminClient.put(`/orders/${orderId}/status`, { status: 'cancelado' });
+
+      return { success: true, data: response.data };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al cancelar pedido');
+      return { success: false, error: err.response?.data?.message || 'Error al cancelar pedido' };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteOrder = useCallback(async (orderId) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await adminClient.delete(`/orders/${orderId}`);
+
+      return { success: true, data: response.data };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al eliminar pedido');
+      return { success: false, error: err.response?.data?.message || 'Error al eliminar pedido' };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     fetchOrders,
     createOrder,
     updateOrderStatus,
+    fetchOrderById,
+    cancelOrder,
+    deleteOrder,
     loading,
     error,
   };

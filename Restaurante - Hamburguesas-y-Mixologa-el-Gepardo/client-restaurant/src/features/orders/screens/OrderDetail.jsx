@@ -249,7 +249,7 @@ const OrderDetail = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>Productos</Text>
           <View style={styles.itemsList}>
             {order.items && order.items.map((item, index) => (
-              <View key={index} style={styles.itemRow}>
+              <View key={`${item._id || item.id || item.name}-${index}`} style={styles.itemRow}>
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName}>{item.name}</Text>
                   <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>

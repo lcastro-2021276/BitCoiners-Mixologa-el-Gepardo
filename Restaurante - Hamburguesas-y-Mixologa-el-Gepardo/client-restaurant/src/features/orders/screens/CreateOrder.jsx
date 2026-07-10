@@ -1,75 +1,63 @@
 // c:\repo\BitCoiners-Mixologa-el-Gepardo\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\client-restaurant\src\features\orders\screens\CreateOrder.jsx
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
-import { useForm } from 'react-hook-form';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
-import Button from '../../../shared/components/common/Button.jsx';
-import Input from '../../../shared/components/common/Input.jsx';
 import { Card, LoadingSpinner } from '../../../shared/components/common/Common.jsx';
 import { useOrders } from '../hooks/useOrders.js';
 
-const CreateOrder = ({ route, navigation }) => {
-  const { orderId } = route.params || {};
+const CreateOrder = () => {
+  const navigation = useNavigation();
   const { createOrder, loading, error } = useOrders();
   const [selectedItems, setSelectedItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [orderType, setOrderType] = useState('table'); // 'table', 'delivery', 'takeout'
-
-  const { control, handleSubmit, watch, setValue } = useForm({
-    defaultValues: {
-      table: '',
-      productId: '',
-      quantity: 1,
-      address: '',
-      phone: '',
-      notes: '',
-    },
-  });
-
-  const table = watch('table');
-  const productId = watch('productId');
-  const quantity = watch('quantity');
-  const address = watch('address');
-  const phone = watch('phone');
-  const notes = watch('notes');
 
   const menuItems = [
-    { id: 1, name: 'Hamburguesa Clásica', price: 85.00 },
-    { id: 2, name: 'Hamburguesa con Queso', price: 95.00 },
-    { id: 3, name: 'Hamburguesa Doble', price: 120.00 },
-    { id: 4, name: 'Papas Fritas', price: 35.00 },
-    { id: 5, name: 'Refresco', price: 25.00 },
-    { id: 6, name: 'Cerveza', price: 45.00 },
+    { id: 1, name: 'Hamburguesa Clásica', price: 85.00, icon: 'restaurant' },
+    { id: 2, name: 'Hamburguesa con Queso', price: 95.00, icon: 'restaurant' },
+    { id: 3, name: 'Hamburguesa Doble', price: 120.00, icon: 'restaurant' },
+    { id: 4, name: 'Papas Fritas', price: 35.00, icon: 'fastfood' },
+    { id: 5, name: 'Refresco', price: 25.00, icon: 'local-drink' },
+    { id: 6, name: 'Cerveza', price: 45.00, icon: 'local-bar' },
   ];
 
-  const addItem = useCallback(() => {
-    if (!productId || !quantity || quantity <= 0) {
-      Alert.alert('Error', 'Selecciona un producto y cantidad válida');
-      return;
+  const addItem = useCallback((product) => {
+    const existingItem = selectedItems.find(item => item.id === product.id);
+    if (existingItem) {
+      const newItems = selectedItems.map(item => 
+        item.id === product.id 
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+      setSelectedItems(newItems);
+      calculateTotal(newItems);
+    } else {
+      const newItem = {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+      };
+      setSelectedItems([...selectedItems, newItem]);
+      calculateTotal([...selectedItems, newItem]);
     }
-
-    const product = menuItems.find((item) => item.id === parseInt(productId));
-    if (!product) {
-      Alert.alert('Error', 'Producto no encontrado');
-      return;
-    }
-
-    const newItem = {
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: parseInt(quantity),
-    };
-
-    setSelectedItems([...selectedItems, newItem]);
-    calculateTotal([...selectedItems, newItem]);
-    setValue('productId', '');
-    setValue('quantity', 1);
-  }, [productId, quantity, selectedItems, menuItems, setValue]);
+  }, [selectedItems]);
 
   const removeItem = useCallback((index) => {
     const newItems = selectedItems.filter((_, i) => i !== index);
+    setSelectedItems(newItems);
+    calculateTotal(newItems);
+  }, [selectedItems]);
+
+  const updateQuantity = useCallback((index, delta) => {
+    const newItems = selectedItems.map((item, i) => {
+      if (i === index) {
+        const newQuantity = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    });
     setSelectedItems(newItems);
     calculateTotal(newItems);
   }, [selectedItems]);
@@ -79,211 +67,140 @@ const CreateOrder = ({ route, navigation }) => {
     setTotal(totalAmount);
   }, []);
 
-  const onSubmit = async (data) => {
+  const handleCreateOrder = async () => {
     if (selectedItems.length === 0) {
       Alert.alert('Error', 'Agrega al menos un producto al pedido');
       return;
     }
 
-    const orderData = {
-      items: selectedItems.map((item) => ({
-        productId: item.productId,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-      total,
-      status: 'pendiente',
-      orderType,
-    };
-
-    if (orderType === 'table') {
-      if (!data.table) {
-        Alert.alert('Error', 'Selecciona una mesa');
-        return;
-      }
-      orderData.table = parseInt(data.table);
-    } else if (orderType === 'delivery') {
-      if (!data.address) {
-        Alert.alert('Error', 'Ingresa la dirección de entrega');
-        return;
-      }
-      if (!data.phone) {
-        Alert.alert('Error', 'Ingresa el teléfono de contacto');
-        return;
-      }
-      orderData.address = data.address;
-      orderData.phone = data.phone;
-      orderData.deliveryFee = 25.00; // Delivery fee
-      orderData.total += orderData.deliveryFee;
-    } else if (orderType === 'takeout') {
-      if (!data.phone) {
-        Alert.alert('Error', 'Ingresa el teléfono de contacto');
-        return;
-      }
-      orderData.phone = data.phone;
-    }
-
-    if (data.notes) {
-      orderData.notes = data.notes;
-    }
-
-    const result = await createOrder(orderData);
-    if (result.success) {
-      Alert.alert('Éxito', 'Pedido creado correctamente', [
+    Alert.alert(
+      'Realizar Pedido',
+      '¿Estás seguro de realizar su pedido?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'OK',
-          onPress: () => navigation.navigate('Pedidos'),
+          text: 'Sí',
+          style: 'default',
+          onPress: async () => {
+            const orderData = {
+              items: selectedItems.map((item) => ({
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+              })),
+              total,
+              status: 'pendiente',
+              orderType: 'table',
+            };
+
+            const result = await createOrder(orderData);
+            if (result.success) {
+              Alert.alert('Pedido realizado con éxito', 'Tu pedido ha sido enviado a cocina', [
+                {
+                  text: 'OK',
+                  onPress: () => navigation.navigate('OrdersList'),
+                },
+              ]);
+            } else {
+              Alert.alert('Error', result.error || 'Error al realizar pedido');
+            }
+          },
         },
-      ]);
-    } else {
-      Alert.alert('Error', result.error || 'Error al crear pedido');
-    }
+      ]
+    );
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{orderId ? 'Editar Pedido' : 'Crear Pedido'}</Text>
+        <Text style={styles.title}>Crear Pedido</Text>
       </View>
 
-      {error && (
-        <Card style={styles.errorCard}>
-          <Text style={styles.errorText}>{error}</Text>
-        </Card>
-      )}
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {error && (
+          <Card style={styles.errorCard}>
+            <Text style={styles.errorText}>{error}</Text>
+          </Card>
+        )}
 
-      <Card style={styles.formCard}>
-        <Text style={styles.sectionTitle}>Tipo de Pedido</Text>
-        <View style={styles.orderTypeContainer}>
-          <TouchableOpacity
-            style={[styles.orderTypeButton, orderType === 'table' && styles.orderTypeButtonActive]}
-            onPress={() => setOrderType('table')}
-          >
-            <MaterialIcons name="table-restaurant" size={24} color={orderType === 'table' ? COLORS.surface : COLORS.primary} />
-            <Text style={[styles.orderTypeText, orderType === 'table' && styles.orderTypeTextActive]}>En Mesa</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.orderTypeButton, orderType === 'delivery' && styles.orderTypeButtonActive]}
-            onPress={() => setOrderType('delivery')}
-          >
-            <MaterialIcons name="delivery-dining" size={24} color={orderType === 'delivery' ? COLORS.surface : COLORS.primary} />
-            <Text style={[styles.orderTypeText, orderType === 'delivery' && styles.orderTypeTextActive]}>A Domicilio</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.orderTypeButton, orderType === 'takeout' && styles.orderTypeButtonActive]}
-            onPress={() => setOrderType('takeout')}
-          >
-            <MaterialIcons name="takeout-dining" size={24} color={orderType === 'takeout' ? COLORS.surface : COLORS.primary} />
-            <Text style={[styles.orderTypeText, orderType === 'takeout' && styles.orderTypeTextActive]}>Para Llevar</Text>
-          </TouchableOpacity>
-        </View>
-      </Card>
-
-      {orderType === 'table' && (
-        <Card style={styles.formCard}>
-          <Text style={styles.sectionTitle}>Información de la Mesa</Text>
-          <Input
-            label="Número de Mesa"
-            name="table"
-            control={control}
-            rules={{ required: 'El número de mesa es requerido' }}
-            placeholder="Ej: 1"
-            keyboardType="number-pad"
-          />
-        </Card>
-      )}
-
-      {(orderType === 'delivery' || orderType === 'takeout') && (
-        <Card style={styles.formCard}>
-          <Text style={styles.sectionTitle}>
-            {orderType === 'delivery' ? 'Información de Entrega' : 'Información de Recogida'}
-          </Text>
-          {orderType === 'delivery' && (
-            <Input
-              label="Dirección de Entrega"
-              name="address"
-              control={control}
-              rules={{ required: 'La dirección es requerida' }}
-              placeholder="Calle, número, colonia"
-            />
-          )}
-          <Input
-            label="Teléfono de Contacto"
-            name="phone"
-            control={control}
-            rules={{ required: 'El teléfono es requerido' }}
-            placeholder="+52 55 1234 5678"
-            keyboardType="phone-pad"
-          />
-          <Input
-            label="Notas Adicionales (Opcional)"
-            name="notes"
-            control={control}
-            placeholder="Instrucciones especiales"
-            multiline
-            numberOfLines={3}
-          />
-          {orderType === 'delivery' && (
-            <View style={styles.deliveryFeeContainer}>
-              <MaterialIcons name="local-shipping" size={20} color={COLORS.primary} />
-              <Text style={styles.deliveryFeeText}>Costo de envío: $25.00</Text>
-            </View>
-          )}
-        </Card>
-      )}
-
-      <Card style={styles.formCard}>
-        <Text style={styles.sectionTitle}>Agregar Productos</Text>
-        <Input
-          label="Producto"
-          name="productId"
-          control={control}
-          rules={{ required: 'Selecciona un producto' }}
-          placeholder="Selecciona un producto"
-        />
-        <Input
-          label="Cantidad"
-          name="quantity"
-          control={control}
-          rules={{ required: 'La cantidad es requerida', min: { value: 1, message: 'Mínimo 1' } }}
-          placeholder="Cantidad"
-          keyboardType="number-pad"
-        />
-        <Button title="Agregar Producto" onPress={addItem} variant="secondary" style={styles.addButton} />
-      </Card>
-
-      {selectedItems.length > 0 && (
-        <Card style={styles.itemsCard}>
-          <Text style={styles.sectionTitle}>Productos Agregados</Text>
-          {selectedItems.map((item, index) => (
-            <View key={index} style={styles.itemRow}>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+        <Text style={styles.sectionTitle}>Menú</Text>
+        <View style={styles.menuGrid}>
+          {menuItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuItemCard}
+              onPress={() => addItem(item)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuItemIcon}>
+                <MaterialIcons name={item.icon} size={40} color={COLORS.primary} />
               </View>
-              <View style={styles.itemActions}>
-                <Text style={styles.itemQuantity}>x{item.quantity}</Text>
-                <TouchableOpacity onPress={() => removeItem(index)} style={styles.removeButton}>
-                  <MaterialIcons name="close" size={20} color={COLORS.error} />
-                </TouchableOpacity>
+              <Text style={styles.menuItemName}>{item.name}</Text>
+              <Text style={styles.menuItemPrice}>Q{item.price.toFixed(2)}</Text>
+              <View style={styles.addButton}>
+                <MaterialIcons name="add" size={20} color={COLORS.surface} />
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
-          </View>
-        </Card>
-      )}
+        </View>
 
-      <Button
-        title={orderId ? 'Actualizar Pedido' : 'Crear Pedido'}
-        onPress={handleSubmit(onSubmit)}
-        loading={loading}
-        style={styles.submitButton}
-      />
-    </ScrollView>
+        {selectedItems.length > 0 && (
+          <Card style={styles.invoiceCard}>
+            <Text style={styles.sectionTitle}>Factura</Text>
+            {selectedItems.map((item, index) => (
+              <View key={`${item.id}-${index}`} style={styles.invoiceItem}>
+                <View style={styles.invoiceItemInfo}>
+                  <Text style={styles.invoiceItemName}>{item.name}</Text>
+                  <Text style={styles.invoiceItemPrice}>Q{item.price.toFixed(2)}</Text>
+                </View>
+                <View style={styles.invoiceItemActions}>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => updateQuantity(index, -1)}
+                  >
+                    <MaterialIcons name="remove" size={18} color={COLORS.primary} />
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{item.quantity}</Text>
+                  <TouchableOpacity
+                    style={styles.quantityButton}
+                    onPress={() => updateQuantity(index, 1)}
+                  >
+                    <MaterialIcons name="add" size={18} color={COLORS.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => removeItem(index)}
+                  >
+                    <MaterialIcons name="delete" size={18} color={COLORS.error} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.itemSubtotal}>
+                  Subtotal: Q{(item.price * item.quantity).toFixed(2)}
+                </Text>
+              </View>
+            ))}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalValue}>Q{total.toFixed(2)}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.createOrderButton}
+              onPress={handleCreateOrder}
+              disabled={loading}
+            >
+              {loading ? (
+                <LoadingSpinner />
+              ) : (
+                <>
+                  <MaterialIcons name="shopping-cart" size={24} color={COLORS.surface} />
+                  <Text style={styles.createOrderButtonText}>Realizar Pedido</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </Card>
+        )}
+      </ScrollView>
+    </View>
   );
 };
 
@@ -292,138 +209,196 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  scrollContent: {
-    padding: SPACING.md,
-  },
   header: {
-    marginBottom: SPACING.lg,
+    padding: SPACING.lg,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.primary,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.md,
   },
   title: {
     fontSize: FONT_SIZE.xxxl,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.primary,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: SPACING.lg,
   },
   errorCard: {
     marginBottom: SPACING.md,
     backgroundColor: '#fee2e2',
+    borderRadius: 16,
+    padding: SPACING.md,
   },
   errorText: {
     color: COLORS.error,
-    fontSize: FONT_SIZE.sm,
+    fontSize: FONT_SIZE.md,
     textAlign: 'center',
-  },
-  formCard: {
-    marginBottom: SPACING.md,
+    fontWeight: '600',
   },
   sectionTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: SPACING.lg,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.primary + '20',
+  },
+  menuGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.md,
+    marginBottom: SPACING.xl,
+  },
+  menuItemCard: {
+    width: '48%',
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    padding: SPACING.md,
+    alignItems: 'center',
+    ...SHADOWS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  menuItemIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: COLORS.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  menuItemName: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
     color: COLORS.text,
-    marginBottom: SPACING.md,
+    textAlign: 'center',
+    marginBottom: SPACING.xs,
+  },
+  menuItemPrice: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '800',
+    color: COLORS.primary,
+    marginBottom: SPACING.sm,
   },
   addButton: {
-    marginTop: SPACING.md,
+    backgroundColor: COLORS.primary,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.md,
   },
-  itemsCard: {
-    marginBottom: SPACING.md,
+  invoiceCard: {
+    borderRadius: 20,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.lg,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
   },
-  itemRow: {
+  invoiceItem: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    marginBottom: SPACING.sm,
+  },
+  invoiceItemInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    marginBottom: SPACING.sm,
   },
-  itemInfo: {
+  invoiceItemName: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+    color: COLORS.text,
     flex: 1,
   },
-  itemName: {
+  invoiceItemPrice: {
     fontSize: FONT_SIZE.md,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  itemPrice: {
-    fontSize: FONT_SIZE.sm,
-    color: COLORS.textLight,
-  },
-  itemActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  itemQuantity: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.primary,
   },
+  invoiceItemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  quantityButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  quantityText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
+    color: COLORS.primary,
+    minWidth: 30,
+    textAlign: 'center',
+  },
   removeButton: {
-    padding: SPACING.xs,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fee2e2',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  itemSubtotal: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+    color: COLORS.textLight,
+    textAlign: 'right',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: SPACING.md,
-    paddingTop: SPACING.md,
+    marginTop: SPACING.lg,
+    paddingTop: SPACING.lg,
     borderTopWidth: 2,
     borderTopColor: COLORS.primary,
   },
   totalLabel: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '700',
     color: COLORS.text,
   },
   totalValue: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: '700',
+    fontSize: FONT_SIZE.xxxl,
+    fontWeight: '800',
     color: COLORS.primary,
   },
-  submitButton: {
-    marginTop: SPACING.lg,
-  },
-  orderTypeContainer: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-  },
-  orderTypeButton: {
-    flex: 1,
+  createOrderButton: {
+    backgroundColor: COLORS.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: SPACING.xs,
-    backgroundColor: COLORS.background,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.sm,
-  },
-  orderTypeButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  orderTypeText: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  orderTypeTextActive: {
-    color: COLORS.surface,
-  },
-  deliveryFeeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: SPACING.sm,
-    backgroundColor: COLORS.primary + '10',
-    padding: SPACING.md,
-    borderRadius: 8,
-    marginTop: SPACING.md,
+    paddingVertical: SPACING.lg,
+    borderRadius: 16,
+    marginTop: SPACING.lg,
+    ...SHADOWS.lg,
   },
-  deliveryFeeText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
-    color: COLORS.primary,
+  createOrderButtonText: {
+    color: COLORS.surface,
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '700',
   },
 });
 
