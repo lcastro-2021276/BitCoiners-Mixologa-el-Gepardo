@@ -11,21 +11,21 @@ const Rating = ({ rating, onRatingChange, readonly = false, size = 24 }) => {
 
     if (halfFilled) {
       return (
-        <MaterialIcons 
-          key={starNumber} 
-          name="star-half" 
-          size={size} 
-          color={COLORS.warning} 
+        <MaterialIcons
+          key={`star-half-${starNumber}`}
+          name="star-half"
+          size={size}
+          color={COLORS.warning}
         />
       );
     }
 
     return (
-      <MaterialIcons 
-        key={starNumber} 
-        name={filled ? 'star' : 'star-outline'} 
-        size={size} 
-        color={filled ? COLORS.warning : COLORS.border} 
+      <MaterialIcons
+        key={`star-${starNumber}`}
+        name={filled ? 'star' : 'star-outline'}
+        size={size}
+        color={filled ? COLORS.warning : COLORS.border}
       />
     );
   };
@@ -33,7 +33,11 @@ const Rating = ({ rating, onRatingChange, readonly = false, size = 24 }) => {
   if (readonly) {
     return (
       <View style={styles.container}>
-        {[1, 2, 3, 4, 5].map(renderStar)}
+        {[1, 2, 3, 4, 5].map((starNumber) => (
+          <View key={`readonly-star-${starNumber}`}>
+            {renderStar(starNumber)}
+          </View>
+        ))}
       </View>
     );
   }
@@ -42,7 +46,7 @@ const Rating = ({ rating, onRatingChange, readonly = false, size = 24 }) => {
     <View style={styles.container}>
       {[1, 2, 3, 4, 5].map((starNumber) => (
         <TouchableOpacity
-          key={starNumber}
+          key={`touchable-star-${starNumber}`}
           onPress={() => onRatingChange && onRatingChange(starNumber)}
           activeOpacity={0.7}
         >

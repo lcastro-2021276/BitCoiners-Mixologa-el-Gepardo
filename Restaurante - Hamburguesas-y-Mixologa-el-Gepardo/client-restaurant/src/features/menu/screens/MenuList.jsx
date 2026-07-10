@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
 import { Card, LoadingSpinner, EmptyState } from '../../../shared/components/common/Common.jsx';
 import { useMenu } from '../hooks/useMenu.js';
@@ -9,7 +10,8 @@ import AppHeader from '../../../shared/components/layout/AppHeader.jsx';
 import { isAvailable, getAvailabilityColors, getAvailabilityLabel } from '../../../shared/utils/availabilityHelper.js';
 import useAuthStore from '../../../shared/store/authStore.js';
 
-const MenuList = ({ navigation }) => {
+const MenuList = () => {
+  const navigation = useNavigation();
   const [menuItems, setMenuItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'available', 'unavailable'
@@ -102,16 +104,13 @@ const MenuList = ({ navigation }) => {
             const itemKey = item.id || item._id || `${item.name}-${index}`;
 
             return (
-              <TouchableOpacity
+              <View
                 key={itemKey}
                 style={[
                   styles.menuCard,
                   !available && styles.menuCardUnavailable,
                   !available && { borderColor: colors.border, borderWidth: 2 }
                 ]}
-                onPress={() => available && navigation.navigate('MenuDetail', { itemId: item.id })}
-                disabled={!available}
-                activeOpacity={0.7}
               >
                 <View style={styles.menuImageContainer}>
                   <View style={[styles.menuImageGradient, !available && styles.menuImageGradientUnavailable]}>
@@ -140,14 +139,20 @@ const MenuList = ({ navigation }) => {
                     <Text style={styles.itemPriceUnavailable}>No disponible temporalmente</Text>
                   )}
                 </View>
-                <View style={styles.menuArrow}>
+                <TouchableOpacity
+                  style={styles.moreInfoButton}
+                  onPress={() => available && navigation.navigate('MenuDetail', { itemId: item.id })}
+                  disabled={!available}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.moreInfoText}>Más información</Text>
                   <MaterialIcons
                     name="chevron-right"
-                    size={24}
-                    color={!available ? COLORS.unavailableText : COLORS.secondary}
+                    size={20}
+                    color={!available ? COLORS.unavailableText : COLORS.primary}
                   />
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
             );
           })}
         </View>
@@ -206,6 +211,25 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     ...SHADOWS.lg,
+  },
+  moreInfoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.primary + '15',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: 12,
+    marginRight: SPACING.md,
+    alignSelf: 'center',
+  },
+  moreInfoText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   menuImageContainer: {
     width: 100,

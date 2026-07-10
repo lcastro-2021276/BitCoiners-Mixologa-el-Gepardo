@@ -96,17 +96,19 @@ export const Navbar = ({ title, subtitle, onMenuOpen, user }) => {
           </button>
 
           {showNavDropdown && (
-            <div className="absolute top-full right-0 mt-3 w-64 rounded-2xl border-2 border-amber-500/25 bg-gradient-to-br from-[#0d1b14] via-[#1a2e23] to-[#0d1b14] shadow-2xl shadow-amber-500/15 overflow-hidden z-50 backdrop-blur-xl">
-              <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-amber-500/3" />
-              <div className="relative p-2">
-                {navOptions.map((option) => (
+            <div className="absolute top-full right-0 mt-3 w-72 rounded-2xl border-2 border-amber-500/30 bg-gradient-to-br from-[#0d1b14] via-[#1a2e23] to-[#0d1b14] shadow-2xl shadow-amber-500/20 overflow-hidden z-[100] backdrop-blur-xl">
+              <div className="absolute inset-0 bg-gradient-to-b from-amber-500/8 via-transparent to-amber-500/5" />
+              <div className="relative p-3">
+                {navOptions.map((option, index) => (
                   <a
                     key={option.path}
                     href={option.path}
-                    className="relative flex items-center gap-3 rounded-xl px-4 py-3 text-[13px] text-zinc-300 hover:bg-amber-400/10 hover:text-amber-200 transition-all duration-200 border border-transparent hover:border-amber-500/20 last:border-0 hover:scale-[1.02]"
+                    className="relative flex items-center gap-4 rounded-xl px-5 py-4 text-[14px] font-medium text-zinc-200 hover:bg-gradient-to-r hover:from-amber-400/15 hover:to-amber-500/15 hover:text-white transition-all duration-300 border border-transparent hover:border-amber-500/30 last:border-0 hover:scale-[1.03] hover:shadow-lg hover:shadow-amber-500/10"
+                    style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => setShowNavDropdown(false)}
                   >
-                    <span className="relative">{option.label}</span>
+                    <span className="text-lg">{option.label.split(' ')[0]}</span>
+                    <span className="flex-1">{option.label.split(' ').slice(1).join(' ')}</span>
                   </a>
                 ))}
               </div>

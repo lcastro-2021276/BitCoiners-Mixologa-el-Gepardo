@@ -1,6 +1,6 @@
 // c:\repo\BitCoiners-Mixologa-el-Gepardo\Restaurante - Hamburguesas-y-Mixologa-el-Gepardo\client-restaurant\src\features\auth\screens\LoginScreen.jsx
 import React, { useRef, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Dimensions, Image } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
@@ -64,20 +64,14 @@ const LoginScreen = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        {/* Background Image with Parallax Effect */}
-        <Animated.Image
-          source={require('../../../../assets/mixologias.png')}
-          style={[
-            styles.backgroundImage,
-            {
-              transform: [{ scale: Animated.add(1, Animated.multiply(decorAnim, 0.1)) }]
-            }
-          ]}
-          resizeMode="cover"
-        />
-        
-        {/* Gradient Overlay */}
-        <View style={styles.overlay} />
+        {/* Background */}
+        <View style={styles.backgroundGradient}>
+          <Image
+            source={require('../../../../assets/mixologias.png')}
+            style={styles.backgroundImage}
+            resizeMode="cover"
+          />
+        </View>
         
         {/* Animated Particles */}
         <Animated.View 
@@ -117,17 +111,14 @@ const LoginScreen = ({ navigation }) => {
           ]} 
         />
 
-        {/* Logo Section with Image */}
+        {/* Logo Section */}
         <Animated.View style={[styles.logoContainer, { opacity: logoAnim, transform: [{ translateY: Animated.multiply(logoAnim, -30) }] }]}>
-          <View style={styles.logoWrapper}>
-            <Image
-              source={require('../../../../assets/mixologias.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
+          <View style={styles.logoOverlay}>
+            <View style={styles.logoWrapper}>
+              <MaterialIcons name="star" size={50} color={COLORS.warning} style={styles.crown} />
+              <Text style={styles.brandName}>EL GEPARDO</Text>
+            </View>
           </View>
-          <Text style={styles.brandName}>EL GEPARDO</Text>
-          <Text style={styles.brandSubtitle}>Hamburguesas & Mixología</Text>
         </Animated.View>
 
         {/* Form Container with Glass Effect */}
@@ -179,14 +170,17 @@ const LoginScreen = ({ navigation }) => {
           )}
 
           <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-            <Button
-              title="Iniciar Sesión"
-              onPress={handleSubmit(onSubmit)}
-              onPressIn={onPressIn}
-              onPressOut={onPressOut}
-              loading={loading}
-              style={styles.button}
-            />
+            <View style={styles.buttonGradient}>
+              <Button
+                title="Iniciar Sesión"
+                onPress={handleSubmit(onSubmit)}
+                onPressIn={onPressIn}
+                onPressOut={onPressOut}
+                loading={loading}
+                style={styles.button}
+                textStyle={styles.buttonText}
+              />
+            </View>
           </Animated.View>
 
           <TouchableOpacity
@@ -199,6 +193,11 @@ const LoginScreen = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
         </Animated.View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Versión 1.0.0</Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -213,18 +212,16 @@ const styles = StyleSheet.create({
     minHeight: height,
     position: 'relative',
   },
-  backgroundImage: {
+  backgroundGradient: {
     position: 'absolute',
     width: width,
     height: height,
     top: 0,
     left: 0,
   },
-  overlay: {
-    position: 'absolute',
-    width: width,
-    height: height,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
   },
   particle1: {
     position: 'absolute',
@@ -260,24 +257,38 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   logoWrapper: {
-    position: 'relative',
+    alignItems: 'center',
     marginBottom: SPACING.md,
+  },
+  logoOverlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    padding: SPACING.xl,
+    borderRadius: 20,
+  },
+  crown: {
+    marginBottom: SPACING.sm,
   },
   logoImage: {
     width: 150,
     height: 150,
   },
-  crown: {
-    position: 'absolute',
-    top: -15,
-    right: -10,
+  logoGradient: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.xl,
   },
   brandName: {
     fontSize: FONT_SIZE.xxxl,
     fontWeight: '800',
     color: COLORS.surface,
     letterSpacing: 4,
-    marginBottom: SPACING.xs,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 6,
   },
   brandSubtitle: {
     fontSize: FONT_SIZE.md,
@@ -295,6 +306,7 @@ const styles = StyleSheet.create({
   },
   formHeader: {
     marginBottom: SPACING.xl,
+    alignItems: 'center',
   },
   title: {
     fontSize: FONT_SIZE.xxxl,
@@ -325,8 +337,17 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.sm,
     marginLeft: SPACING.xs,
   },
-  button: {
+  buttonGradient: {
+    borderRadius: 16,
+    overflow: 'hidden',
     marginTop: SPACING.lg,
+    backgroundColor: COLORS.primary,
+  },
+  button: {
+    backgroundColor: 'transparent',
+  },
+  buttonText: {
+    color: COLORS.surface,
   },
   registerLink: {
     alignItems: 'center',
@@ -339,6 +360,15 @@ const styles = StyleSheet.create({
   registerTextBold: {
     color: COLORS.primary,
     fontWeight: '700',
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: SPACING.lg,
+    zIndex: 1,
+  },
+  footerText: {
+    fontSize: FONT_SIZE.xs,
+    color: 'rgba(255, 255, 255, 0.6)',
   },
 });
 

@@ -9,9 +9,6 @@ import useAuthStore from '../shared/store/authStore.js';
 const Stack = createNativeStackNavigator();
 
 const MenuStack = () => {
-  const { user } = useAuthStore();
-  const isAdmin = user?.role === 'admin';
-
   return (
     <Stack.Navigator
       screenOptions={{
@@ -20,7 +17,7 @@ const MenuStack = () => {
     >
       <Stack.Screen name="MenuList" component={MenuList} />
       <Stack.Screen name="MenuDetail" component={MenuDetail} />
-      {isAdmin && <Stack.Screen name="CreateMenuItem" component={CreateMenuItem} />}
+      <Stack.Screen name="CreateMenuItem" component={CreateMenuItem} />
     </Stack.Navigator>
   );
 };

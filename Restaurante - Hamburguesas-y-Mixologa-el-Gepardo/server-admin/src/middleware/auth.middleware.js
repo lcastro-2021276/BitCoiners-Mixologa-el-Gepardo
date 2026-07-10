@@ -20,7 +20,6 @@ export const verifyToken = (req, res, next) => {
 
     try {
 
-        
         const decoded = jwt.verify(
             token,
             process.env.JWT_SECRET
@@ -36,6 +35,14 @@ export const verifyToken = (req, res, next) => {
             "Error verificando token:",
             error.message
         );
+
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                message: "Token expirado",
+                error: "jwt expired",
+                code: "TOKEN_EXPIRED"
+            });
+        }
 
         return res.status(403).json({
             message: "Token inválido",
