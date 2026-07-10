@@ -93,11 +93,11 @@ const Reviews = ({ route, navigation }) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       if (i <= rating) {
-        stars.push(<MaterialIcons key={i} name="star" size={16} color={COLORS.warning} />);
+        stars.push(<MaterialIcons key={`review-star-${i}`} name="star" size={16} color={COLORS.warning} />);
       } else if (i - 0.5 <= rating) {
-        stars.push(<MaterialIcons key={i} name="star-half" size={16} color={COLORS.warning} />);
+        stars.push(<MaterialIcons key={`review-star-half-${i}`} name="star-half" size={16} color={COLORS.warning} />);
       } else {
-        stars.push(<MaterialIcons key={i} name="star-outline" size={16} color={COLORS.warning} />);
+        stars.push(<MaterialIcons key={`review-star-outline-${i}`} name="star-outline" size={16} color={COLORS.warning} />);
       }
     }
     return stars;
