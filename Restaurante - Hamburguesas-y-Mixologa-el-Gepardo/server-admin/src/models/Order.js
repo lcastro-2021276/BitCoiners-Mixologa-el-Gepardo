@@ -5,14 +5,18 @@ const orderSchema = new mongoose.Schema(
         table: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Table",
-            required: true,
+            required: false,
         },
         items: [
             {
                 menuItem: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: "MenuItem",
-                    required: true,
+                    required: false,
+                },
+                name: {
+                    type: String,
+                    required: false,
                 },
                 quantity: {
                     type: Number,
