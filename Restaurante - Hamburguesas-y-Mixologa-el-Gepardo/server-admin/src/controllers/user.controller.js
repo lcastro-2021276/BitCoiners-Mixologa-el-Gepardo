@@ -88,9 +88,22 @@ export const getProfile = async (req, res) => {
       return res.status(401).json({ message: "No autorizado - Token inválido" });
     }
 
-    const user = await User.findOne({ _id: userId, isDeleted: false })
-      .populate("role", "name")
-      .select("-password");
+    let user;
+
+    // Verificar si userId es un ObjectId válido de MongoDB
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(userId);
+
+    if (isValidObjectId) {
+      // Buscar por ObjectId
+      user = await User.findOne({ _id: userId, isDeleted: false })
+        .populate("role", "name")
+        .select("-password");
+    } else {
+      // Si no es ObjectId, buscar por email u otro campo
+      user = await User.findOne({ email: userId, isDeleted: false })
+        .populate("role", "name")
+        .select("-password");
+    }
 
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });

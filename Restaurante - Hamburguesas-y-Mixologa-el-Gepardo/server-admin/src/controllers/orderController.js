@@ -9,7 +9,7 @@ export const createOrder = async (req, res) => {
 
         let calculatedTotal = 0;
 
-        // Soportar ambos formatos: el nuevo (productId, name, price) y el antiguo (menuItem)
+        // Soportar ambos formatos: el nuevo (productId, name, price), el antiguo (menuItem) y el directo (name, price)
         const detailedItems = await Promise.all(items.map(async (item) => {
             let menuItem;
             let price;
@@ -28,6 +28,10 @@ export const createOrder = async (req, res) => {
                     throw new Error("Producto no encontrado");
                 }
                 price = menuItem.price;
+            } else if (item.name && item.price) {
+                // Formato directo con name y price (sin buscar en DB)
+                price = item.price;
+                menuItem = null;
             } else {
                 throw new Error("Formato de item inválido");
             }
@@ -36,10 +40,10 @@ export const createOrder = async (req, res) => {
             calculatedTotal += subtotal;
 
             return {
-                menuItem: menuItem._id,
+                menuItem: menuItem ? menuItem._id : null,
+                name: item.name || (menuItem ? menuItem.name : 'Producto'),
                 quantity: item.quantity,
                 price: price,
-                name: item.name || menuItem.name
             };
         }));
 
