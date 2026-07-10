@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useForm } from 'react-hook-form';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../../shared/constants/theme.js';
 import Button from '../../../shared/components/common/Button.jsx';
 import Input from '../../../shared/components/common/Input.jsx';
@@ -12,6 +13,7 @@ import useAuthStore from '../../../shared/store/authStore.js';
 import AppHeader from '../../../shared/components/layout/AppHeader.jsx';
 
 const Profile = () => {
+  const navigation = useNavigation();
   const [profile, setProfile] = useState(null);
   const { fetchProfile, updateProfile, handleLogout, loading, error } = useProfile();
   const { user } = useAuthStore();
@@ -163,69 +165,97 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: SPACING.md,
+    padding: SPACING.lg,
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl,
+    paddingBottom: SPACING.lg,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.primary + '20',
   },
   avatarContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.surface,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.md,
-    ...SHADOWS.md,
+    marginBottom: SPACING.lg,
+    ...SHADOWS.lg,
+    borderWidth: 2,
+    borderColor: COLORS.primary + '20',
   },
   username: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontSize: FONT_SIZE.xxxl,
+    fontWeight: '800',
+    color: COLORS.primary,
   },
   errorCard: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
     backgroundColor: '#fee2e2',
+    borderRadius: 16,
+    padding: SPACING.lg,
   },
   errorText: {
     color: COLORS.error,
-    fontSize: FONT_SIZE.sm,
+    fontSize: FONT_SIZE.md,
     textAlign: 'center',
+    fontWeight: '600',
   },
   formCard: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
+    borderRadius: 20,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   sectionTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
+    fontSize: FONT_SIZE.xl,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: SPACING.lg,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.primary + '20',
   },
   saveButton: {
-    marginTop: SPACING.lg,
+    marginTop: SPACING.xl,
+    borderRadius: 16,
   },
   infoCard: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
+    borderRadius: 20,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    marginBottom: SPACING.sm,
   },
   infoLabel: {
     fontSize: FONT_SIZE.md,
     color: COLORS.textLight,
+    fontWeight: '600',
   },
   infoValue: {
     fontSize: FONT_SIZE.md,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
   },
   logoutButton: {
-    marginTop: SPACING.lg,
+    marginTop: SPACING.xl,
+    borderRadius: 16,
   },
 });
 
