@@ -24,7 +24,7 @@ const ListSkeleton = ({ count = 3 }) => {
   return (
     <View style={styles.list}>
       {Array.from({ length: count }).map((_, index) => (
-        <CardSkeleton key={index} />
+        <CardSkeleton key={`skeleton-card-${index}`} />
       ))}
     </View>
   );
@@ -34,7 +34,7 @@ const KPISkeleton = () => {
   return (
     <View style={styles.kpiContainer}>
       {Array.from({ length: 4 }).map((_, index) => (
-        <View key={index} style={styles.kpi}>
+        <View key={`skeleton-kpi-${index}`} style={styles.kpi}>
           <SkeletonLoader style={styles.kpiValue} />
           <SkeletonLoader style={styles.kpiLabel} />
         </View>
