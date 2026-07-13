@@ -1,82 +1,125 @@
-import axios from 'axios';
-import { useAuthStore } from '../../features/auth/store/authStore.js';
+import axios from "axios";
+import { useAuthStore } from "../../features/auth/store/authStore.js";
 
 const axiosAuth = axios.create({
   baseURL: import.meta.env.VITE_AUTH_URL,
   timeout: 5000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 
 const axiosAdmin = axios.create({
   baseURL: import.meta.env.VITE_ADMIN_URL,
   timeout: 5000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 
 
 const attachToken = (config) => {
-  const token = useAuthStore.getState().token || localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = useAuthStore.getState().token || localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 };
 
+
 axiosAuth.interceptors.request.use((config) => {
-  config._axiosClient = 'auth';
+  config._axiosClient = "auth";
   return attachToken(config);
 });
 
+
 axiosAdmin.interceptors.request.use((config) => {
-  config._axiosClient = 'admin';
+  config._axiosClient = "admin";
   return attachToken(config);
 });
+
 
 let _isRefreshing = false;
 let failedQueue = [];
 
+
 function _processQueue(error, token = null) {
-  failedQueue.forEach(({ resolve, reject }) => (error ? reject(error) : resolve(token)));
+  failedQueue.forEach(({ resolve, reject }) =>
+    error ? reject(error) : resolve(token)
+  );
+
   failedQueue = [];
 }
 
+
 const handleRefreshToken = async (_error) => {
   const _original = _error.config;
-  if (!_original || _original._retry) return Promise.reject(_error);
+
+  if (!_original || _original._retry) {
+    return Promise.reject(_error);
+  }
 
   const status = _error.response?.status;
   const errorCode = _error.response?.data?.error;
-  const isRefreshEndpoint = _original.url?.includes('/auth/refresh');
+
+  const isRefreshEndpoint = _original.url?.includes("/auth/refresh");
 
   const shouldRefresh =
     (!isRefreshEndpoint && status === 401) ||
-    (!isRefreshEndpoint && status === 403 && errorCode === 'TOKEN_EXPIRED');
+    (!isRefreshEndpoint && status === 403 && errorCode === "TOKEN_EXPIRED");
 
-  if (!shouldRefresh) return Promise.reject(_error);
 
-  const retryClient = _original._axiosClient === 'admin' ? axiosAdmin : axiosAuth;
+  if (!shouldRefresh) {
+    return Promise.reject(_error);
+  }
+
+
+  const retryClient =
+    _original._axiosClient === "admin"
+      ? axiosAdmin
+      : axiosAuth;
+
 
   if (_isRefreshing) {
-    return new Promise((resolve, reject) => failedQueue.push({ resolve, reject }))
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    })
       .then((token) => {
-        _original.headers['Authorization'] = 'Bearer ' + token;
+        _original.headers.Authorization = "Bearer " + token;
         return retryClient(_original);
       })
       .catch((err) => Promise.reject(err));
   }
 
+
   _original._retry = true;
   _isRefreshing = true;
 
-  
-  const refreshToken = useAuthStore.getState().refreshToken || localStorage.getItem('refreshToken');
+
+  const refreshToken =
+    useAuthStore.getState().refreshToken ||
+    localStorage.getItem("refreshToken");
+
+
   if (!refreshToken) {
     useAuthStore.getState().logout();
     _isRefreshing = false;
     return Promise.reject(_error);
   }
 
+
   try {
-    const response = await axiosAuth.post('/auth/refresh', { refreshToken });
-    const { accessToken, refreshToken: newRefreshToken, expiresIn, userDetails } = response.data;
+
+    const response = await axiosAuth.post("/auth/refresh", {
+      refreshToken
+    });
+
+
+    const {
+      accessToken,
+      refreshToken: newRefreshToken,
+      expiresIn,
+      userDetails
+    } = response.data;
+
 
     useAuthStore.setState({
       token: accessToken,
@@ -86,24 +129,51 @@ const handleRefreshToken = async (_error) => {
       isAuthenticated: true,
     });
 
-    
-    localStorage.setItem('token', accessToken);
-    if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
+
+    localStorage.setItem("token", accessToken);
+
+    if (newRefreshToken) {
+      localStorage.setItem("refreshToken", newRefreshToken);
+    }
+
 
     _processQueue(null, accessToken);
-    _original.headers['Authorization'] = 'Bearer ' + accessToken;
+
+    _original.headers.Authorization = "Bearer " + accessToken;
+
     return retryClient(_original);
+
+
   } catch (err) {
+
     _processQueue(err, null);
     useAuthStore.getState().logout();
+
     return Promise.reject(err);
+
+
   } finally {
+
     _isRefreshing = false;
+
   }
 };
 
-axiosAuth.interceptors.response.use((res) => res, handleRefreshToken);
-axiosAdmin.interceptors.response.use((res) => res, handleRefreshToken);
 
-export { axiosAuth, axiosAdmin };
-export { handleRefreshToken };
+axiosAuth.interceptors.response.use(
+  (res) => res,
+  handleRefreshToken
+);
+
+
+axiosAdmin.interceptors.response.use(
+  (res) => res,
+  handleRefreshToken
+);
+
+
+export {
+  axiosAuth,
+  axiosAdmin,
+  handleRefreshToken
+};

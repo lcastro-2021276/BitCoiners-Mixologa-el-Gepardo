@@ -10,12 +10,11 @@ import roleRoutes from "./src/routes/role.routes.js";
 import restaurantRoutes from "./src/routes/restaurant.routes.js";
 import tableRoutes from "./src/routes/table.routes.js";
 import menuItemRoutes from "./src/routes/menuItem.routes.js";
-import orderRoutes from "./src/routes/order.routes.js"; 
+import orderRoutes from "./src/routes/order.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
 import reservationRoutes from "./src/routes/reservation.routes.js";
 import reviewRoutes from "./src/routes/review.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
-
 
 dotenv.config();
 
@@ -27,7 +26,7 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
 
     console.log("ORIGIN RECIBIDO:", origin);
 
@@ -44,6 +43,7 @@ app.use(cors({
   credentials: true
 }));
 
+// Middleware JSON
 app.use(express.json());
 
 const swaggerOptions = {
@@ -55,8 +55,14 @@ const swaggerOptions = {
             description: "Documentación completa del Sistema Gestor Restaurantes"
         },
         servers: [
-            { url: process.env.API_URL || "http://localhost:3000", description: "API en producción" },
-            { url: "http://localhost:3000", description: "API local" }
+            { 
+                url: process.env.API_URL || "https://gepardo-server-admin-lab3.onrender.com",
+                description: "API en producción"
+            },
+            { 
+                url: "http://localhost:3000",
+                description: "API local"
+            }
         ],
         components: {
             securitySchemes: {
@@ -81,12 +87,19 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+);
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB conectado"))
-    .catch(err => console.error(err));
+    .catch(err => console.error("Error MongoDB:", err));
 
+
+// Rutas
 app.use("/auth", authRoutes);
 app.use("/roles", roleRoutes);
 app.use("/restaurants", restaurantRoutes);
@@ -98,8 +111,9 @@ app.use("/reservations", reservationRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/notifications", notificationRoutes);
 
+
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-    console.log("Servidor corriendo en http://localhost:" + PORT);
-    console.log("Swagger docs: http://localhost:" + PORT + "/api-docs");
+    console.log("Servidor corriendo en puerto: " + PORT);
 });
