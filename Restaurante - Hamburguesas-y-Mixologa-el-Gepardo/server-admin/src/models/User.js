@@ -17,10 +17,10 @@ const userSchema = new mongoose.Schema({
         required: true, 
         minlength: 6 
     },
-    role: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Role",
-        required: true
+    role_id: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Role",
+    required: true
     },
     isDeleted: {
         type: Boolean,
