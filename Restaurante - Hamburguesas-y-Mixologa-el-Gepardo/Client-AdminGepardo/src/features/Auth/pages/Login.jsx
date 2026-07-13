@@ -5,16 +5,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
-    emailOrUsername: "",
-    password: ""
+    email: "",
+    password: "",
   });
-
   const [error, setError] = useState("");
 
   const handleChange = (e) =>
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
 
   const handleLogin = async (e) => {
@@ -24,7 +23,6 @@ export default function Login() {
     setError("");
 
     try {
-
       // DEBUG
       console.log("FORM ENVIADO:", form);
 
@@ -33,52 +31,39 @@ export default function Login() {
 
       console.log("RESPUESTA COMPLETA:", res);
 
-      // VALIDAR SUCCESS
-      if (!res.success) {
-        setError(res.message || "Credenciales incorrectas ❌");
-        return;
-      }
-
       // VALIDAR TOKEN
-      if (!res.token) {
+      if (!res.accessToken) {
         setError("No se recibió token ❌");
         return;
       }
 
       // GUARDAR TOKEN
-      localStorage.setItem("token", res.token);
+      localStorage.setItem("token", res.accessToken);
+
+      // GUARDAR REFRESH TOKEN
+      if (res.refreshToken) {
+        localStorage.setItem("refreshToken", res.refreshToken);
+      }
 
       // GUARDAR USUARIO
-      localStorage.setItem("user", JSON.stringify(res.user));
+      localStorage.setItem("user", JSON.stringify(res.userDetails));
 
-      // GUARDAR ROLE
-      localStorage.setItem("role", res.role);
-
-      console.log("TOKEN:", res.token);
-      console.log("ROLE:", res.role);
-      console.log("USER:", res.user);
+      console.log("TOKEN:", res.accessToken);
+      console.log("USER:", res.userDetails);
 
       // REDIRECCIONAR
       window.location.href = "/dashboard";
-
     } catch (err) {
-
       console.log("ERROR COMPLETO:", err);
 
       // ERROR BACKEND
       if (err.response) {
-
         console.log("ERROR RESPONSE:", err.response.data);
 
-        setError(
-          err.response.data.message ||
-          "Credenciales inválidas ❌"
-        );
-
+        setError(err.response.data.message || "Credenciales inválidas ❌");
       } else {
         setError("No se pudo conectar con el servidor ❌");
       }
-
     } finally {
       setLoading(false);
     }
@@ -97,7 +82,6 @@ export default function Login() {
         background: "var(--bg-dark)",
       }}
     >
-
       {/* FONDO */}
       <div
         style={{
@@ -125,7 +109,6 @@ export default function Login() {
           boxShadow: "0 25px 60px rgba(0,0,0,0.55)",
         }}
       >
-
         {/* IZQUIERDA */}
         <div
           style={{
@@ -140,7 +123,6 @@ export default function Login() {
             borderRight: "1px solid var(--border-color)",
           }}
         >
-
           <div
             style={{
               width: "80px",
@@ -191,8 +173,8 @@ export default function Login() {
               lineHeight: 1.7,
             }}
           >
-            Sistema moderno y seguro para administrar pedidos,
-            inventario y operaciones del restaurante.
+            Sistema moderno y seguro para administrar pedidos, inventario y
+            operaciones del restaurante.
           </p>
         </div>
 
@@ -207,7 +189,6 @@ export default function Login() {
             justifyContent: "center",
           }}
         >
-
           {/* TITULO */}
           <div style={{ marginBottom: "28px" }}>
             <h2
@@ -257,7 +238,6 @@ export default function Login() {
               gap: "20px",
             }}
           >
-
             {/* EMAIL */}
             <div
               style={{
@@ -280,7 +260,7 @@ export default function Login() {
 
               <input
                 type="text"
-                name="emailOrUsername"
+                name="email"
                 placeholder="correo@empresa.com"
                 onChange={handleChange}
                 required
