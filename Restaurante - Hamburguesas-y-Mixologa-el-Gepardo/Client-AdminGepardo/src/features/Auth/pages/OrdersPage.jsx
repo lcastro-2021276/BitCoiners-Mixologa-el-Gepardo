@@ -646,7 +646,7 @@ const OrderModal = ({ onClose, onCreated }) => {
 
 export const OrdersPage = () => {
   const { user } = useAuthStore();
-  const isClient = ["cliente", "client"].includes((user?.role ?? "").toLowerCase());
+  const isClient = ["cliente", "client"].includes((user?.role?.name ?? "").toLowerCase());
   const uid = user?._id ?? user?.id ?? "guest";
 
   const [orders, setOrders] = useState([]);

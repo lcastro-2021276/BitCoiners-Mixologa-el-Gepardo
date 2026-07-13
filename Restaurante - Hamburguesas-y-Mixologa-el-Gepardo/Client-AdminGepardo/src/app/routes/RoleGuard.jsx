@@ -8,7 +8,7 @@ export const RoleGuard = ({ allowedRoles = [], children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  const userRole = user.role?.toUpperCase();
+  const userRole = user.role?.name?.toUpperCase();
   const hasRole = allowedRoles.includes(userRole);
 
   if (!hasRole) {
