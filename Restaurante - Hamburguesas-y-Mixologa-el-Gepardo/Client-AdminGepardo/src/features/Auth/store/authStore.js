@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { axiosAuth } from "../../../shared/apis/api.js";
+import { axiosAdmin } from "../../../shared/apis/api.js";
 import toast from "react-hot-toast";
 
 export const useAuthStore = create((set) => ({
@@ -20,7 +20,7 @@ export const useAuthStore = create((set) => ({
         password: data.password,
       };
 
-      const res = await axiosAuth.post("/auth/login", payload);
+      const res = await axiosAdmin.post("/auth/login", payload);
 
       console.log("LOGIN RESPONSE:", res.data);
 
