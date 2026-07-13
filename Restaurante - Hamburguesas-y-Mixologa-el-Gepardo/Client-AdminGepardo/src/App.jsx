@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { AppRoutes } from "./app/routes/AppRoutes";
-import { useAuthStore } from "./features/auth/store/authStore";
+import { useAuthStore } from "./features/Auth/store/authStore.js";
 
 
 function App() {
