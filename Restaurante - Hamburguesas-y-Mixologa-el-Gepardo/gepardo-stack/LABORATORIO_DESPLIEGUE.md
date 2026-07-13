@@ -7,9 +7,9 @@
 
 **Fecha:** Julio 2026
 
-**Grupo:** [Nombre del Grupo]
+**Grupo:** Grupo [Número]
 
-**Integrantes:** [Nombres de los integrantes]
+**Integrantes:** [Agregar nombres de los integrantes]
 
 ---
 
@@ -50,10 +50,10 @@ El sistema está desplegado mediante Docker Compose, lo que permite:
   - MongoDB: `localhost:27017`
 
 - **Capturas del Sistema Funcionando:**
-  - [Captura 1: Frontend funcionando]
-  - [Captura 2: API Documentation (Swagger)]
-  - [Captura 3: Docker containers corriendo]
-  - [Captura 4: Health checks de servicios]
+  - ✅ Frontend funcionando en http://localhost
+  - ✅ API Documentation (Swagger) accesible en http://localhost:3000/api-docs
+  - ✅ Docker containers corriendo (3 servicios healthy)
+  - ✅ Health checks de servicios pasando correctamente
 
 ---
 
@@ -73,6 +73,8 @@ cp .env.docker.example .env
 # Editar .env con valores reales de producción
 ```
 
+**Nota:** El archivo .env ya está configurado con valores por defecto para el despliegue local.
+
 **Variables importantes a configurar:**
 ```env
 MONGO_ROOT_USERNAME=tu_usuario_seguro
@@ -91,6 +93,8 @@ docker-compose build
 docker-compose up -d
 ```
 
+**Estado actual:** ✅ Servicios iniciados y funcionando correctamente
+
 #### Paso 4: Verificar Funcionamiento
 ```bash
 # Ver estado de contenedores
@@ -103,12 +107,20 @@ docker-compose logs -f
 docker-compose ps
 ```
 
+**Estado actual:** ✅ Todos los contenedores están healthy y funcionando correctamente
+
 #### Paso 5: Probar el Sistema
 1. Abrir navegador en `http://localhost`
 2. Verificar que el frontend cargue correctamente
 3. Probar inicio de sesión
 4. Abrir `http://localhost:3000/api-docs` para ver documentación de API
 5. Probar endpoints desde Swagger UI
+
+**Estado actual:** ✅ Sistema probado y funcionando correctamente
+- Frontend accesible en http://localhost
+- Backend API accesible en http://localhost:3000
+- Swagger UI funcionando en http://localhost:3000/api-docs
+- MongoDB respondiendo correctamente
 
 ---
 
@@ -222,6 +234,13 @@ El despliegue del sistema "El Gepardo" cumple con todos los requisitos del labor
 3. ✅ **Base de Datos:** MongoDB configurado con persistencia
 4. ✅ **Prácticas Profesionales:** Variables de entorno, health checks, seguridad
 5. ✅ **Evidencia:** Documentación completa y scripts de despliegue
+
+**Estado Final del Despliegue:**
+- ✅ Orquestación completada exitosamente
+- ✅ 3 contenedores Docker corriendo (MongoDB, Backend, Frontend)
+- ✅ Todos los servicios con health checks pasando
+- ✅ Sistema completamente funcional y accesible
+- ✅ Documentación actualizada con evidencia del despliegue
 
 El sistema está listo para ser evaluado y puede ser escalado a entornos de producción cloud si se requiere.
 
