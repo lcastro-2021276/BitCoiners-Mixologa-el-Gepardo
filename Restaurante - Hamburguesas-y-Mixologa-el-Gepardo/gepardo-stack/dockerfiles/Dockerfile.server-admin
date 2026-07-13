@@ -1,33 +1,18 @@
-# Production image
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
-# Install production dependencies only
-RUN npm install --only=production
+COPY package.json pnpm-lock.yaml ./
 
-# Copy source code
+RUN pnpm install --frozen-lockfile --prod
+
 COPY src ./src
 COPY server.js ./server.js
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+ENV NODE_ENV=production
 
-# Change ownership
-RUN chown -R nodejs:nodejs /app
-
-USER nodejs
-
-# Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api-docs', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-# Start the application
 CMD ["node", "server.js"]
