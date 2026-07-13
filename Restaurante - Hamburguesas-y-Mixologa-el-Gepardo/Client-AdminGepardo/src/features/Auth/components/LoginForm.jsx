@@ -50,7 +50,7 @@ export const LoginForm = ({ onForgot }) => {
       // =========================
       // DATOS USUARIO
       // =========================
-      const userRole = loggedUser.role ?? "";
+      const userRole = (loggedUser.role ?? "").toLowerCase();
       const userEmail = loggedUser.email?.toLowerCase() ?? "";
 
       console.log("ROLE:", userRole);
@@ -59,7 +59,7 @@ export const LoginForm = ({ onForgot }) => {
       // =========================
       // ADMIN
       // =========================
-      if (userRole === "Admin") {
+      if (userRole === "admin") {
 
         const esCorreoKinal =
           userEmail.endsWith("@kinal.edu.gt");
@@ -85,7 +85,7 @@ export const LoginForm = ({ onForgot }) => {
       // =========================
       // CLIENTE
       // =========================
-      if (userRole === "Cliente") {
+      if (userRole === "cliente") {
 
         const esCorreoGmail =
           userEmail.endsWith("@gmail.com");
