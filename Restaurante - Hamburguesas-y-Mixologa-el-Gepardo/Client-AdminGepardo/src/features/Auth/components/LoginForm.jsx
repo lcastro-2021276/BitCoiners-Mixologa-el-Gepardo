@@ -50,7 +50,7 @@ export const LoginForm = ({ onForgot }) => {
       // =========================
       // DATOS USUARIO
       // =========================
-      const userRole = (loggedUser.role ?? "").toLowerCase();
+      const userRole = (loggedUser.role?.name ?? "").toLowerCase();
       const userEmail = loggedUser.email?.toLowerCase() ?? "";
 
       console.log("ROLE:", userRole);
