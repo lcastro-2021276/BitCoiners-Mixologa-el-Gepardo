@@ -16,7 +16,7 @@ export const useAuthStore = create((set) => ({
 
     try {
       const payload = {
-        email: data.email,
+        email: data.emailOrUsername,
         password: data.password,
       };
 
