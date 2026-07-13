@@ -21,9 +21,27 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://client-admin-gepardo.vercel.app"
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true,
+  origin: function(origin, callback) {
+
+    console.log("ORIGIN RECIBIDO:", origin);
+
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("No permitido por CORS"));
+  },
+  credentials: true
 }));
 
 app.use(express.json());
