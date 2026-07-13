@@ -20,13 +20,30 @@ dotenv.config();
 
 const app = express();
 
-// 1. Configuración de CORS (Debe ir primero)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://client-admin-gepardo.vercel.app"
+];
+
 app.use(cors({
-  origin: true, // Permite todos los orígenes para pruebas en despliegue
+  origin: function (origin, callback) {
+
+    console.log("ORIGIN RECIBIDO:", origin);
+
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("No permitido por CORS"));
+  },
   credentials: true
 }));
 
-// 2. Middleware para procesar JSON (Debe ir después de CORS)
+// Middleware JSON
 app.use(express.json());
 
 const swaggerOptions = {
@@ -38,8 +55,14 @@ const swaggerOptions = {
             description: "Documentación completa del Sistema Gestor Restaurantes"
         },
         servers: [
-            { url: process.env.API_URL || "https://gepardo-server-admin-lab3.onrender.com", description: "API en producción" },
-            { url: "http://localhost:3000", description: "API local" }
+            { 
+                url: process.env.API_URL || "https://gepardo-server-admin-lab3.onrender.com",
+                description: "API en producción"
+            },
+            { 
+                url: "http://localhost:3000",
+                description: "API local"
+            }
         ],
         components: {
             securitySchemes: {
@@ -64,11 +87,17 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+);
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB conectado"))
     .catch(err => console.error("Error MongoDB:", err));
+
 
 // Rutas
 app.use("/auth", authRoutes);
@@ -82,7 +111,9 @@ app.use("/reservations", reservationRoutes);
 app.use("/reviews", reviewRoutes);
 app.use("/notifications", notificationRoutes);
 
+
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
     console.log("Servidor corriendo en puerto: " + PORT);
 });

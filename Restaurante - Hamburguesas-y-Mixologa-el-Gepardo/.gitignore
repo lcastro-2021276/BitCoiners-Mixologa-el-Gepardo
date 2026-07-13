@@ -1,6 +1,7 @@
 # env files
-client-restaurant/.env
 .env
+client-restaurant/.env
+server-admin/.env
 
 # dependencies
 node_modules/
@@ -11,3 +12,10 @@ build/
 
 # logs
 *.log
+
+# .NET
+**/bin/
+**/obj/
+
+# Vercel
+.vercel/
