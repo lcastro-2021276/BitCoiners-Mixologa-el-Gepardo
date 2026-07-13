@@ -1,7 +1,7 @@
 // DashboardPage.jsx
 import { Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../features/auth/store/authStore.js";
+import { useAuthStore } from "../../features/Auth/store/authStore.js";
 import { DashboardContainer } from "../../shared/components/layout/DashboardContainer.jsx";
 
 export const DashboardPage = () => {

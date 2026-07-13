@@ -1,5 +1,5 @@
 // src/features/dashboard/DashboardHome.jsx
-import { useAuthStore } from "../../auth/store/authStore";
+import { useAuthStore } from "../../Auth/store/authStore.js";
 import {
   ClipboardDocumentListIcon,
   TableCellsIcon,

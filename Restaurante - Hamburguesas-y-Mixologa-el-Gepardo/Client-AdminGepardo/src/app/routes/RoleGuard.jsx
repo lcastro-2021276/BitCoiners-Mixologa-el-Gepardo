@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuthStore } from "../../features/auth/store/authStore";  //  faltaba esto
+import { useAuthStore } from "../../features/Auth/store/authStore.js"; //  faltaba esto
 
 export const RoleGuard = ({ allowedRoles = [], children }) => {
   const user = useAuthStore((s) => s.user);
