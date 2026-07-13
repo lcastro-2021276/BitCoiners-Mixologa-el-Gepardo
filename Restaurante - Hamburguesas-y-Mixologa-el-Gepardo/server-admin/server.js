@@ -10,22 +10,23 @@ import roleRoutes from "./src/routes/role.routes.js";
 import restaurantRoutes from "./src/routes/restaurant.routes.js";
 import tableRoutes from "./src/routes/table.routes.js";
 import menuItemRoutes from "./src/routes/menuItem.routes.js";
-import orderRoutes from "./src/routes/order.routes.js"; 
+import orderRoutes from "./src/routes/order.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
 import reservationRoutes from "./src/routes/reservation.routes.js";
 import reviewRoutes from "./src/routes/review.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
 
-
 dotenv.config();
 
 const app = express();
 
+// 1. Configuración de CORS (Debe ir primero)
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true,
+  origin: true, // Permite todos los orígenes para pruebas en despliegue
+  credentials: true
 }));
 
+// 2. Middleware para procesar JSON (Debe ir después de CORS)
 app.use(express.json());
 
 const swaggerOptions = {
@@ -37,7 +38,7 @@ const swaggerOptions = {
             description: "Documentación completa del Sistema Gestor Restaurantes"
         },
         servers: [
-            { url: process.env.API_URL || "http://localhost:3000", description: "API en producción" },
+            { url: process.env.API_URL || "https://gepardo-server-admin-lab3.onrender.com", description: "API en producción" },
             { url: "http://localhost:3000", description: "API local" }
         ],
         components: {
@@ -67,8 +68,9 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB conectado"))
-    .catch(err => console.error(err));
+    .catch(err => console.error("Error MongoDB:", err));
 
+// Rutas
 app.use("/auth", authRoutes);
 app.use("/roles", roleRoutes);
 app.use("/restaurants", restaurantRoutes);
@@ -82,6 +84,5 @@ app.use("/notifications", notificationRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log("Servidor corriendo en http://localhost:" + PORT);
-    console.log("Swagger docs: http://localhost:" + PORT + "/api-docs");
+    console.log("Servidor corriendo en puerto: " + PORT);
 });
